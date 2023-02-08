@@ -297,18 +297,18 @@ namespace PlayeChessEngine {
                 }
         };
     }
-
+    
     // TODO check_path function
     // TODO check_check function
     // TODO check_checkmate function
-    // TODO check_stalemate function
     // TODO check_draw function
+        // TODO check_stalemate function
+        // TODO check_fifty_move_rule function
+        // TODO check_threefold_repetition function
+        // TODO check_insufficient_material function
     // TODO check_promotion function
     // TODO check_castling function
     // TODO check_en_passant function
-    // TODO check_fifty_move_rule function
-    // TODO check_threefold_repetition function
-    // TODO check_insufficient_material function
     
     class PCE {
         private:
