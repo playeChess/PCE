@@ -99,13 +99,13 @@ namespace PlayeChessEngine {
                             if(this->is_white) {
                                 if (x_offset == 1)
                                     return true;
-                                if(!this->has_moved and x_offset == 2)
+                                if(!this->has_moved && x_offset == 2)
                                     return true;
                                 return false;
                             } else {
                                 if (x_offset == -1)
                                     return true;
-                                if(!this->has_moved and x_offset == -2)
+                                if(!this->has_moved && x_offset == -2)
                                     return true;
                                 return false;
                             }
@@ -118,9 +118,8 @@ namespace PlayeChessEngine {
                 public:
                     Rook(bool is_white) : Piece(r, is_white) {};
                     bool validation_function(int x_offset, int y_offset) {
-                        if ((x_offset == 0 or y_offset == 0) and x_offset != y_offset) {
+                        if ((x_offset == 0 || y_offset == 0) && x_offset != y_offset)
                             return true;
-                        }
                         return false;
                     };
             };
@@ -129,9 +128,8 @@ namespace PlayeChessEngine {
                 public:
                     Knight(bool is_white) : Piece(n, is_white) {};
                     bool validation_function(int x_offset, int y_offset) {
-                        if ((abs(x_offset) == 2 and abs(y_offset) == 1) or (abs(x_offset) == 1 and abs(y_offset) == 2)) {
+                        if ((abs(x_offset) == 2 && abs(y_offset) == 1) || (abs(x_offset) == 1 && abs(y_offset) == 2))
                             return true;
-                        }
                         return false;
                     };
             };
@@ -140,9 +138,8 @@ namespace PlayeChessEngine {
                 public:
                     Bishop(bool is_white) : Piece(b, is_white) {};
                     bool validation_function(int x_offset, int y_offset) {
-                        if (abs(x_offset) == abs(y_offset) and x_offset != 0) {
+                        if (abs(x_offset) == abs(y_offset) && x_offset != 0)
                             return true;
-                        }
                         return false;
                     };
             };
@@ -151,9 +148,8 @@ namespace PlayeChessEngine {
                 public:
                     Queen(bool is_white) : Piece(q, is_white) {};
                     bool validation_function(int x_offset, int y_offset) {
-                        if ((abs(x_offset) == abs(y_offset) and x_offset != 0) or ((x_offset == 0 or y_offset == 0) and x_offset != y_offset)) {
+                        if ((abs(x_offset) == abs(y_offset) && x_offset != 0) || ((x_offset == 0 || y_offset == 0) && x_offset != y_offset))
                             return true;
-                        }
                         return false;
                     };
             };
@@ -162,9 +158,8 @@ namespace PlayeChessEngine {
                 public:
                     King(bool is_white) : Piece(k, is_white) {};
                     bool validation_function(int x_offset, int y_offset) {
-                        if (abs(x_offset) <= 1 and abs(y_offset) <= 1 and (x_offset != 0 or y_offset != 0)) {
+                        if (abs(x_offset) <= 1 && abs(y_offset) <= 1 && (x_offset != 0 || y_offset != 0))
                             return true;
-                        }
                         return false;
                     };
             };
@@ -250,7 +245,7 @@ namespace PlayeChessEngine {
                         for (int j = 0; j < 8; j++) {
                             bool skip = false;
                             for(auto move : moves) {
-                                if(move[0] == 7 - i and move[1] == j) {
+                                if(move[0] == 7 - i && move[1] == j) {
                                     std::cout << "* ";
                                     skip = true;
                                     break;
