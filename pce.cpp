@@ -7,8 +7,10 @@
 */
 
 #include <iostream>
+#include <string>
 #include <array>
 #include <vector>
+#include <algorithm>
 
 namespace PlayeChessEngine {
 
@@ -167,75 +169,58 @@ namespace PlayeChessEngine {
         class Board {
             private:
                 std::array<std::array<pieces::Piece*, 8>, 8> board = {{{nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}}};
-                pieces::Rook R1 = pieces::Rook(true, 0, 0);
-                pieces::Rook R2 = pieces::Rook(true, 0, 7);
-                pieces::Knight N1 = pieces::Knight(true, 0, 1);
-                pieces::Knight N2 = pieces::Knight(true, 0, 6);
-                pieces::Bishop B1 = pieces::Bishop(true, 0, 2);
-                pieces::Bishop B2 = pieces::Bishop(true, 0, 5);
-                pieces::Queen Q = pieces::Queen(true, 0, 3);
-                pieces::King K = pieces::King(true, 0, 4);
-                pieces::Pawn P1 = pieces::Pawn(true, 1, 0);
-                pieces::Pawn P2 = pieces::Pawn(true, 1, 1);
-                pieces::Pawn P3 = pieces::Pawn(true, 1, 2);
-                pieces::Pawn P4 = pieces::Pawn(true, 1, 3);
-                pieces::Pawn P5 = pieces::Pawn(true, 1, 4);
-                pieces::Pawn P6 = pieces::Pawn(true, 1, 5);
-                pieces::Pawn P7 = pieces::Pawn(true, 1, 6);
-                pieces::Pawn P8 = pieces::Pawn(true, 1, 7);
-                pieces::Rook r1 = pieces::Rook(false, 7, 0);
-                pieces::Rook r2 = pieces::Rook(false, 7, 7);
-                pieces::Knight n1 = pieces::Knight(false, 7, 1);
-                pieces::Knight n2 = pieces::Knight(false, 7, 6);
-                pieces::Bishop b1 = pieces::Bishop(false, 7, 2);
-                pieces::Bishop b2 = pieces::Bishop(false, 7, 5);
-                pieces::Queen q = pieces::Queen(false, 7, 3);
-                pieces::King k = pieces::King(false, 7, 4);
-                pieces::Pawn p1 = pieces::Pawn(false, 6, 0);
-                pieces::Pawn p2 = pieces::Pawn(false, 6, 1);
-                pieces::Pawn p3 = pieces::Pawn(false, 6, 2);
-                pieces::Pawn p4 = pieces::Pawn(false, 6, 3);
-                pieces::Pawn p5 = pieces::Pawn(false, 6, 4);
-                pieces::Pawn p6 = pieces::Pawn(false, 6, 5);
-                pieces::Pawn p7 = pieces::Pawn(false, 6, 6);
-                pieces::Pawn p8 = pieces::Pawn(false, 6, 7);
 
             public:
-                Board() {
-                    this->board[0][0] = &R1;
-                    this->board[0][1] = &N1;
-                    this->board[0][2] = &B1;
-                    this->board[0][3] = &Q;
-                    this->board[0][4] = &K;
-                    this->board[0][5] = &B2;
-                    this->board[0][6] = &N2;
-                    this->board[0][7] = &R2;
-                    this->board[1][0] = &P1;
-                    this->board[1][1] = &P2;
-                    this->board[1][2] = &P3;
-                    this->board[1][3] = &P4;
-                    this->board[1][4] = &P5;
-                    this->board[1][5] = &P6;
-                    this->board[1][6] = &P7;
-                    this->board[1][7] = &P8;
-
-                    this->board[7][0] = &r1;
-                    this->board[7][1] = &n1;
-                    this->board[7][2] = &b1;
-                    this->board[7][3] = &q;
-                    this->board[7][4] = &k;
-                    this->board[7][5] = &b2;
-                    this->board[7][6] = &n2;
-                    this->board[7][7] = &r2;
-                    this->board[6][0] = &p1;
-                    this->board[6][1] = &p2;
-                    this->board[6][2] = &p3;
-                    this->board[6][3] = &p4;
-                    this->board[6][4] = &p5;
-                    this->board[6][5] = &p6;
-                    this->board[6][6] = &p7;
-                    this->board[6][7] = &p8;
+                Board(std::string fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
+                    std::string fen_board = fen.substr(0, fen.find(" "));
+                    std::reverse(fen_board.begin(), fen_board.end());
+                    load_fen(fen);
                 };
+
+                void load_fen(std::string fen) {
+                    std::string fen_board = fen.substr(0, fen.find(" "));
+                    std::reverse(fen_board.begin(), fen_board.end());
+                    int x = 0;
+                    int y = 0;
+                    for (int i = 0; i < fen_board.length(); i++) {
+                        if (fen_board[i] == '/') {
+                            x = 0;
+                            y++;
+                            continue;
+                        }
+                        if (fen_board[i] >= '0' && fen_board[i] <= '9') {
+                            x += fen_board[i] - '0';
+                            continue;
+                        }
+                        bool is_white = true;
+                        if (fen_board[i] >= 'a' && fen_board[i] <= 'z') {
+                            is_white = false;
+                            fen_board[i] = fen_board[i] - 'a' + 'A';
+                        }
+                        switch (fen_board[i]) {
+                            case 'P':
+                                this->board[y][x] = new pieces::Pawn(is_white, x, y);
+                                break;
+                            case 'R':
+                                this->board[y][x] = new pieces::Rook(is_white, x, y);
+                                break;
+                            case 'N':
+                                this->board[y][x] = new pieces::Knight(is_white, x, y);
+                                break;
+                            case 'B':
+                                this->board[y][x] = new pieces::Bishop(is_white, x, y);
+                                break;
+                            case 'Q':
+                                this->board[y][x] = new pieces::Queen(is_white, x, y);
+                                break;
+                            case 'K':
+                                this->board[y][x] = new pieces::King(is_white, x, y);
+                                break;
+                        }
+                        x++;
+                    }
+                }
+
                 void print_board(std::vector<std::vector<int>> moves = {}) {
                     std::cout << "  #-----------------#" << std::endl;
                     for (int i = 0; i < 8; i++) {
