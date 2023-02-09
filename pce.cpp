@@ -43,9 +43,33 @@ namespace PlayeChessEngine {
             enum piece_type { p, r, n, b, q, k };
 
             class Piece {
+                private:
+                    template<int X>
+                    std::array<Piece*, X> get_indexof_rows(std::array<std::array<Piece*, 8>, X> board, int index) {
+                        std::array<Piece*, X> arr;
+                        for(int i = 0; i < X; i++) {
+                            arr[i] = board[i][index];
+                        }
+                        return arr;
+                    }
+
+                    template<int X, int Y, bool is_negative_x = false, bool is_negative_y = false>
+                    std::array<std::array<Piece*, Y>, X> get_two_dimension_sequence(std::array<std::array<Piece*, 8>, 8> board, int x, int y) {
+                        int xx = is_negative_x ? X - 1: 0;
+                        int yy = is_negative_y ? Y - 1: 0;
+                        std::array<std::array<int, Y>, X> arr;
+                        for(int i = x; i < x + X; i++) {
+                            for(int j = y; j < y + Y; j++) {
+                                arr[i - x][j - y] = board[i - xx][j - yy];
+                            }
+                        }
+                        return arr;
+                    }
+
                 protected:
                     piece_type type;
                     int coords[2] = {0, 0};
+                    std::array<std::array<int, 8>, 8> test = {{{0, 1, 2, 3, 4, 5, 6, 7}, {8, 9, 10, 11, 12, 13, 14, 15}, {16, 17, 18, 19, 20, 21, 22, 23}, {24, 25, 26, 27, 28, 29, 30, 31}, {32, 33, 34, 35, 36, 37, 38, 39}, {40, 41, 42, 43, 44, 45, 46, 47}, {48, 49, 50, 51, 52, 53, 54, 55}, {56, 57, 58, 59, 60, 61, 62, 63}}};
                 public:
                     bool is_white;
                     Piece(piece_type type, bool is_white, int x, int y) {
@@ -66,7 +90,61 @@ namespace PlayeChessEngine {
                         return true;
                     }
 
-                    bool check_path();
+                    bool check_path(int x_final, int y_final, std::array<std::array<Piece*, 8>, 8> board) {
+                        const int x_diff = x_final - this->coords[0];
+                        const int y_diff = y_final - this->coords[1];
+                        if(x_diff == 0) {
+                            std::vector<Piece*> path(y_diff);
+                            std::array<Piece*, 8> iocolumns = board[this->coords[0]];
+                            std::copy(iocolumns.begin() + this->coords[1], iocolumns.begin() + y_diff - 1, path.begin());
+                            for(int i = 1; i < path.size(); i++) {
+                                if(path[i] != nullptr)
+                                    return false;
+                            }
+                        } else if(y_diff == 0) {
+                            std::vector<Piece*> path(x_diff);
+                            std::array<Piece*, 8> iorows = get_indexof_rows<8>(board, this->coords[1]);
+                            std::copy(iorows.begin() + this->coords[0], iorows.begin() + x_diff - 1, path.begin());
+                            for(int i = 1; i < path.size(); i++) {
+                                if(path[i] != nullptr)
+                                    return false;
+                            }
+                        } else if(abs(x_diff) == abs(y_diff)) {
+                            std::cout << "Diagonal " << x_final << ";" << y_final << "(" << x_diff << ";" << y_diff << ")" << std::endl;
+                            if(x_diff < 0 && y_diff < 0) {
+                                for(int i = 1; i < abs(x_diff) - 1; i++) {
+                                    std::cout << "Checking " << this->coords[0] - i << " " << this->coords[1] - i << std::endl;
+                                    if(board[this->coords[0] - i][this->coords[1] - i] != nullptr)
+                                        std::cout << board[this->coords[0] - i][this->coords[1] - i]->type << " - " << this->coords[0] - i << " " << this->coords[1] - i << std::endl; return false;
+                                }
+                            }
+                            else if(x_diff < 0 && y_diff > 0) {
+                                for(int i = 1; i < abs(x_diff) - 1; i++) {
+                                    std::cout << "Checking " << this->coords[0] - i << " " << this->coords[1] + i << std::endl;
+                                    if(board[this->coords[0] - i][this->coords[1] + i] != nullptr)
+                                        std::cout << board[this->coords[0] - i][this->coords[1] + i]->type << " - " << this->coords[0] - i << " " << this->coords[1] + i << std::endl; return false;
+                                }
+                            }
+                            else if(x_diff > 0 && y_diff < 0) {
+                                for(int i = 1; i < abs(x_diff) - 1; i++) {
+                                    std::cout << "Checking " << this->coords[0] + i << " " << this->coords[1] - i << std::endl;
+                                    if(board[this->coords[0] + i][this->coords[1] - i] != nullptr)
+                                        std::cout << board[this->coords[0] + i][this->coords[1] - i]->type << " - " << this->coords[0] + i << " " << this->coords[1] - i << std::endl; return false;
+                                }
+                            }
+                            else {
+                                for(int i = 1; i < x_diff - 1; i++) {
+                                    std::cout << "Checking " << this->coords[0] + i << " " << this->coords[1] + i << std::endl;
+                                    std::cout << (board[this->coords[0] + i][this->coords[1] + i] == nullptr) << std::endl;
+                                    if(board[this->coords[0] + i][this->coords[1] + i] != nullptr)
+                                        std::cout << board[this->coords[0] + i][this->coords[1] + i]->type << " - " << this->coords[0] + i << " " << this->coords[1] + i << std::endl; return false;
+                                }
+                                std::cout << "OK on.1 " << x_final << ";" << y_final << std::endl;
+                            }
+                            std::cout << "OK on.2 " << x_final << ";" << y_final << std::endl; 
+                        }
+                        return true;
+                    }
 
                     std::string show() {
                         if (this->is_white) {
@@ -84,16 +162,26 @@ namespace PlayeChessEngine {
                 public:
                     Pawn(bool is_white, int x, int y) : Piece(p, is_white, x, y) {};
                     bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
+                        // TODO Add pawn takes
                         int x_diff = x_final - this->coords[0];
                         int y_diff = y_final - this->coords[1];
                         if(y_diff == 0 && x_diff != 0) {
                             if(this->is_white) {
-                                if (x_diff == 1 || (!this->has_moved && x_diff == 2))
-                                    return validate_validation(board, x_final, y_final);
+                                if (x_diff == 1)
+                                    std::cout << "1" << std::endl; return validate_validation(board, x_final, y_final);
+                                if(x_diff == 2 && !this->has_moved) {
+                                    std::cout << "2" << std::endl; 
+                                    if(validate_validation(board, x_final, y_final))
+                                        return check_path(x_final, y_final, board);
+                                }
                                 return false;
                             } else {
-                                if (x_diff == -1 || (!this->has_moved && x_diff == -2))
+                                if (x_diff == -1)
                                     return validate_validation(board, x_final, y_final);
+                                if(x_diff == -2 && !this->has_moved) {
+                                    if(validate_validation(board, x_final, y_final))
+                                        return check_path(x_final, y_final, board);
+                                }
                                 return false;
                             }
                         }
@@ -109,8 +197,10 @@ namespace PlayeChessEngine {
                     bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
                         int x_diff = x_final - this->coords[0];
                         int y_diff = y_final - this->coords[1];
-                        if ((x_diff == 0 || y_diff == 0) && x_diff != y_diff)
-                            return validate_validation(board, x_final, y_final);
+                        if ((x_diff == 0 || y_diff == 0) && x_diff != y_diff) {
+                            if(validate_validation(board, x_final, y_final))
+                                return this->check_path(x_final, y_final, board);
+                        }
                         return false;
                     };
             };
@@ -133,8 +223,10 @@ namespace PlayeChessEngine {
                     bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
                         int x_diff = x_final - this->coords[0];
                         int y_diff = y_final - this->coords[1];
-                        if (abs(x_diff) == abs(y_diff) && x_diff != 0)
-                            return validate_validation(board, x_final, y_final);
+                        if (abs(x_diff) == abs(y_diff) && x_diff != 0) {
+                            if(validate_validation(board, x_final, y_final))
+                                return this->check_path(x_final, y_final, board);
+                        }
                         return false;
                     };
             };
@@ -145,8 +237,10 @@ namespace PlayeChessEngine {
                     bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
                         int x_diff = x_final - this->coords[0];
                         int y_diff = y_final - this->coords[1];
-                        if ((abs(x_diff) == abs(y_diff) && x_diff != 0) || ((x_diff == 0 || y_diff == 0) && x_diff != y_diff))
-                            return validate_validation(board, x_final, y_final);
+                        if ((abs(x_diff) == abs(y_diff) && x_diff != 0) || ((x_diff == 0 || y_diff == 0) && x_diff != y_diff)) {
+                            if(validate_validation(board, x_final, y_final))
+                                return this->check_path(x_final, y_final, board);
+                        }
                         return false;
                     };
             };
@@ -212,27 +306,27 @@ namespace PlayeChessEngine {
                             switch(c) {
                                 case 'p':
                                 case 'P':
-                                    this->board[y][x] = new pieces::Pawn(is_white, y, x);
+                                    this->board[y][x] = new pieces::Pawn(is_white, x / 8, x % 8);
                                     break;
                                 case 'r':
                                 case 'R':
-                                    this->board[y][x] = new pieces::Rook(is_white, y, x);
+                                    this->board[y][x] = new pieces::Rook(is_white, x / 8, x % 8);
                                     break;
                                 case 'n':
                                 case 'N':
-                                    this->board[y][x] = new pieces::Knight(is_white, y, x);
+                                    this->board[y][x] = new pieces::Knight(is_white, x / 8, x % 8);
                                     break;
                                 case 'b':
                                 case 'B':
-                                    this->board[y][x] = new pieces::Bishop(is_white, y, x);
+                                    this->board[y][x] = new pieces::Bishop(is_white, x / 8, x % 8);
                                     break;
                                 case 'q':
                                 case 'Q':
-                                    this->board[y][x] = new pieces::Queen(is_white, y, x);
+                                    this->board[y][x] = new pieces::Queen(is_white, x / 8, x % 8);
                                     break;
                                 case 'k':
                                 case 'K':
-                                    this->board[y][x] = new pieces::King(is_white, y, x);
+                                    this->board[y][x] = new pieces::King(is_white, x / 8, x % 8);
                                     break;
                             }
                             x++;
@@ -325,7 +419,7 @@ namespace PlayeChessEngine {
     class PCE {
         private:
             std::vector<Move> moves;
-            PlayeChessEngine::board::Board board;
+            PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("rnbqkbnr/pppppppp/8/8/8/8/8/RNBQKBNR w KQkq - 0 1");
         public:
             PCE() {
                 for(int i = 0; i < 8; i++) {
@@ -336,6 +430,14 @@ namespace PlayeChessEngine {
                     }
                     board.print_board(mvsc);
                 }
+                /*for(int i = 0; i < 8; i++) {
+                    this->moves = board.get_moves(1, i);
+                    std::vector<std::vector<int>> mvsc;
+                    for(auto move : this->moves) {
+                        mvsc.push_back(move.get_coords());
+                    }
+                    board.print_board(mvsc);
+                }*/
             }
     };
 }
