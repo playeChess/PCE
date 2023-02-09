@@ -171,53 +171,72 @@ namespace PlayeChessEngine {
                 std::array<std::array<pieces::Piece*, 8>, 8> board = {{{nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}}};
 
             public:
+                // TODO Add the funcitonnality for w KQkq - 0 1
                 Board(std::string fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
                     std::string fen_board = fen.substr(0, fen.find(" "));
-                    std::reverse(fen_board.begin(), fen_board.end());
                     load_fen(fen);
                 };
 
+                std::string reverse_fen(std::string fen) {
+                    std::vector<std::string> fen_split;
+                    std::string rt = "";
+                    std::string buffer = "";
+                    for(auto c : fen) {
+                        if(c == '/') {
+                            fen_split.push_back(buffer);
+                            buffer = "";
+                        } else {
+                            buffer += c;
+                        }
+                    }
+                    fen_split.push_back(buffer);
+                    for(int i = fen_split.size() - 1; i >= 0; i--) {
+                        rt += fen_split[i];
+                    }
+                    return rt;
+                }
+
                 void load_fen(std::string fen) {
-                    std::string fen_board = fen.substr(0, fen.find(" "));
-                    std::reverse(fen_board.begin(), fen_board.end());
+                    fen = fen.substr(0, fen.find(" "));
+                    fen = reverse_fen(fen);
                     int x = 0;
                     int y = 0;
-                    for (int i = 0; i < fen_board.length(); i++) {
-                        if (fen_board[i] == '/') {
+                    for(auto c : fen) {
+                        if(c == '/') {
                             x = 0;
                             y++;
-                            continue;
+                        } else if(c >= '0' && c <= '9') {
+                            x += c - '0';
+                        } else {
+                            bool is_white = c >= 'A' && c <= 'Z';
+                            switch(c) {
+                                case 'p':
+                                case 'P':
+                                    this->board[y][x] = new pieces::Pawn(is_white, y, x);
+                                    break;
+                                case 'r':
+                                case 'R':
+                                    this->board[y][x] = new pieces::Rook(is_white, y, x);
+                                    break;
+                                case 'n':
+                                case 'N':
+                                    this->board[y][x] = new pieces::Knight(is_white, y, x);
+                                    break;
+                                case 'b':
+                                case 'B':
+                                    this->board[y][x] = new pieces::Bishop(is_white, y, x);
+                                    break;
+                                case 'q':
+                                case 'Q':
+                                    this->board[y][x] = new pieces::Queen(is_white, y, x);
+                                    break;
+                                case 'k':
+                                case 'K':
+                                    this->board[y][x] = new pieces::King(is_white, y, x);
+                                    break;
+                            }
+                            x++;
                         }
-                        if (fen_board[i] >= '0' && fen_board[i] <= '9') {
-                            x += fen_board[i] - '0';
-                            continue;
-                        }
-                        bool is_white = true;
-                        if (fen_board[i] >= 'a' && fen_board[i] <= 'z') {
-                            is_white = false;
-                            fen_board[i] = fen_board[i] - 'a' + 'A';
-                        }
-                        switch (fen_board[i]) {
-                            case 'P':
-                                this->board[y][x] = new pieces::Pawn(is_white, x, y);
-                                break;
-                            case 'R':
-                                this->board[y][x] = new pieces::Rook(is_white, x, y);
-                                break;
-                            case 'N':
-                                this->board[y][x] = new pieces::Knight(is_white, x, y);
-                                break;
-                            case 'B':
-                                this->board[y][x] = new pieces::Bishop(is_white, x, y);
-                                break;
-                            case 'Q':
-                                this->board[y][x] = new pieces::Queen(is_white, x, y);
-                                break;
-                            case 'K':
-                                this->board[y][x] = new pieces::King(is_white, x, y);
-                                break;
-                        }
-                        x++;
                     }
                 }
 
@@ -283,10 +302,8 @@ namespace PlayeChessEngine {
     // TODO anti_autocheck
         // predict_move()
         // king_eatable()
-        // move_back
+        // move_back()
 
-    // TODO check_check
-    // TODO check_checkmate
     // TODO Draw conditions
         // check_stalemate()
         // check_fifty_move_rule()
