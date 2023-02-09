@@ -53,14 +53,15 @@ namespace PlayeChessEngine {
                         this->coords[1] = y;
                     }
 
-                    virtual bool validation_function(PlayeChessEngine::board::Board board, int x_offset, int y_offset) { return false; };
+                    virtual bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) { return false; };
 
-                    bool validate_validation(Board board, int x_offset, int y_offset) {
-                        pieces::Piece* pieceptr = board.get_piece(this->coords[0] + x_offset, this->coords[1] + y_offset);
-                        pieces::Piece piece = *pieceptr;
-                        if(!(pieceptr != nullptr || piece.is_white == this->is_white))
+                    bool validate_validation(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
+                        if(board[x_final][y_final] == nullptr)
                             return true;
-                        return false;
+                        Piece piece = *board[x_final][y_final];
+                        if (piece.is_white == this->is_white)
+                            return false;
+                        return true;
                     }
 
                     bool check_path();
@@ -80,15 +81,17 @@ namespace PlayeChessEngine {
                     bool has_moved = false;
                 public:
                     Pawn(bool is_white, int x, int y) : Piece(p, is_white, x, y) {};
-                    bool validation_function(PlayeChessEngine::board::Board board, int x_offset, int y_offset) {
-                        if(y_offset == 0) {
+                    bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
+                        int x_diff = x_final - this->coords[0];
+                        int y_diff = y_final - this->coords[1];
+                        if(y_diff == 0 && x_diff != 0) {
                             if(this->is_white) {
-                                if (x_offset == 1 || (!this->has_moved && x_offset == 2))
-                                    return validate_validation(board, x_offset, y_offset);
+                                if (x_diff == 1 || (!this->has_moved && x_diff == 2))
+                                    return validate_validation(board, x_final, y_final);
                                 return false;
                             } else {
-                                if (x_offset == -1 || (!this->has_moved && x_offset == -2))
-                                    return validate_validation(board, x_offset, y_offset);
+                                if (x_diff == -1 || (!this->has_moved && x_diff == -2))
+                                    return validate_validation(board, x_final, y_final);
                                 return false;
                             }
                         }
@@ -97,11 +100,15 @@ namespace PlayeChessEngine {
             };
 
             class Rook : public Piece {
+                private:
+                    bool has_moved = false;
                 public:
                     Rook(bool is_white, int x, int y) : Piece(r, is_white, x, y) {};
-                    bool validation_function(int x_offset, int y_offset) {
-                        if ((x_offset == 0 || y_offset == 0) && x_offset != y_offset)
-                            return true;
+                    bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
+                        int x_diff = x_final - this->coords[0];
+                        int y_diff = y_final - this->coords[1];
+                        if ((x_diff == 0 || y_diff == 0) && x_diff != y_diff)
+                            return validate_validation(board, x_final, y_final);
                         return false;
                     };
             };
@@ -109,9 +116,11 @@ namespace PlayeChessEngine {
             class Knight : public Piece {
                 public:
                     Knight(bool is_white, int x, int y) : Piece(n, is_white, x, y) {};
-                    bool validation_function(int x_offset, int y_offset) {
-                        if ((abs(x_offset) == 2 && abs(y_offset) == 1) || (abs(x_offset) == 1 && abs(y_offset) == 2))
-                            return true;
+                    bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
+                        int x_diff = x_final - this->coords[0];
+                        int y_diff = y_final - this->coords[1];
+                        if ((abs(x_diff) == 2 && abs(y_diff) == 1) || (abs(x_diff) == 1 && abs(y_diff) == 2))
+                            return validate_validation(board, x_final, y_final);
                         return false;
                     };
             };
@@ -119,9 +128,11 @@ namespace PlayeChessEngine {
             class Bishop : public Piece {
                 public:
                     Bishop(bool is_white, int x, int y) : Piece(b, is_white, x, y) {};
-                    bool validation_function(int x_offset, int y_offset) {
-                        if (abs(x_offset) == abs(y_offset) && x_offset != 0)
-                            return true;
+                    bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
+                        int x_diff = x_final - this->coords[0];
+                        int y_diff = y_final - this->coords[1];
+                        if (abs(x_diff) == abs(y_diff) && x_diff != 0)
+                            return validate_validation(board, x_final, y_final);
                         return false;
                     };
             };
@@ -129,19 +140,25 @@ namespace PlayeChessEngine {
             class Queen : public Piece {
                 public:
                     Queen(bool is_white, int x, int y) : Piece(q, is_white, x, y) {};
-                    bool validation_function(int x_offset, int y_offset) {
-                        if ((abs(x_offset) == abs(y_offset) && x_offset != 0) || ((x_offset == 0 || y_offset == 0) && x_offset != y_offset))
-                            return true;
+                    bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
+                        int x_diff = x_final - this->coords[0];
+                        int y_diff = y_final - this->coords[1];
+                        if ((abs(x_diff) == abs(y_diff) && x_diff != 0) || ((x_diff == 0 || y_diff == 0) && x_diff != y_diff))
+                            return validate_validation(board, x_final, y_final);
                         return false;
                     };
             };
 
             class King : public Piece {
+                private:
+                    bool has_moved = false;
                 public:
                     King(bool is_white, int x, int y) : Piece(k, is_white, x, y) {};
-                    bool validation_function(int x_offset, int y_offset) {
-                        if (abs(x_offset) <= 1 && abs(y_offset) <= 1 && (x_offset != 0 || y_offset != 0))
-                            return true;
+                    bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
+                        int x_diff = x_final - this->coords[0];
+                        int y_diff = y_final - this->coords[1];
+                        if (abs(x_diff) <= 1 && abs(y_diff) <= 1 && (x_diff != 0 || y_diff != 0))
+                            return validate_validation(board, x_final, y_final);
                         return false;
                     };
             };
@@ -185,39 +202,39 @@ namespace PlayeChessEngine {
 
             public:
                 Board() {
-                    board[0][0] = &R1;
-                    board[0][1] = &N1;
-                    board[0][2] = &B1;
-                    board[0][3] = &Q;
-                    board[0][4] = &K;
-                    board[0][5] = &B2;
-                    board[0][6] = &N2;
-                    board[0][7] = &R2;
-                    board[1][0] = &P1;
-                    board[1][1] = &P2;
-                    board[1][2] = &P3;
-                    board[1][3] = &P4;
-                    board[1][4] = &P5;
-                    board[1][5] = &P6;
-                    board[1][6] = &P7;
-                    board[1][7] = &P8;
+                    this->board[0][0] = &R1;
+                    this->board[0][1] = &N1;
+                    this->board[0][2] = &B1;
+                    this->board[0][3] = &Q;
+                    this->board[0][4] = &K;
+                    this->board[0][5] = &B2;
+                    this->board[0][6] = &N2;
+                    this->board[0][7] = &R2;
+                    this->board[1][0] = &P1;
+                    this->board[1][1] = &P2;
+                    this->board[1][2] = &P3;
+                    this->board[1][3] = &P4;
+                    this->board[1][4] = &P5;
+                    this->board[1][5] = &P6;
+                    this->board[1][6] = &P7;
+                    this->board[1][7] = &P8;
 
-                    board[7][0] = &r1;
-                    board[7][1] = &n1;
-                    board[7][2] = &b1;
-                    board[7][3] = &q;
-                    board[7][4] = &k;
-                    board[7][5] = &b2;
-                    board[7][6] = &n2;
-                    board[7][7] = &r2;
-                    board[6][0] = &p1;
-                    board[6][1] = &p2;
-                    board[6][2] = &p3;
-                    board[6][3] = &p4;
-                    board[6][4] = &p5;
-                    board[6][5] = &p6;
-                    board[6][6] = &p7;
-                    board[6][7] = &p8;
+                    this->board[7][0] = &r1;
+                    this->board[7][1] = &n1;
+                    this->board[7][2] = &b1;
+                    this->board[7][3] = &q;
+                    this->board[7][4] = &k;
+                    this->board[7][5] = &b2;
+                    this->board[7][6] = &n2;
+                    this->board[7][7] = &r2;
+                    this->board[6][0] = &p1;
+                    this->board[6][1] = &p2;
+                    this->board[6][2] = &p3;
+                    this->board[6][3] = &p4;
+                    this->board[6][4] = &p5;
+                    this->board[6][5] = &p6;
+                    this->board[6][6] = &p7;
+                    this->board[6][7] = &p8;
                 };
                 void print_board(std::vector<std::vector<int>> moves = {}) {
                     std::cout << "  #-----------------#" << std::endl;
@@ -234,8 +251,8 @@ namespace PlayeChessEngine {
                             }
                             if(skip)
                                 continue;
-                            if(board[7 - i][7 - j] != nullptr) {
-                                std::cout << board[7 - i][j]->show() << " ";
+                            if(this->board[7 - i][7 - j] != nullptr) {
+                                std::cout << this->board[7 - i][j]->show() << " ";
                             } else {
                                 std::cout << "  ";
                             }
@@ -247,28 +264,28 @@ namespace PlayeChessEngine {
                 }
 
                 pieces::Piece* get_piece(int x, int y) {
-                    return board[x][y];
+                    return this->board[x][y];
                 };
 
-                void show_moves(int x, int y) {
+                /*void show_moves(int x, int y) {
                     std::vector<PlayeChessEngine::Move> moves;
-                    std::cout << "Piece: " << board[x][y]->show() << std::endl;
+                    std::cout << "Piece: " << this->board[x][y]->show() << std::endl;
                     for(int i = 0; i < 8; i++) {
                         for(int j = 0; j < 8; j++) {
                             // std::cout << "Checking: " << i << " " << j << std::endl;
-                            if(board[x][y]->validation_function(board, i - x, j - y)) {
+                            if(this->board[x][y]->validation_function(this->board, i - x, j - y)) {
                                 PlayeChessEngine::Move(x, y, i, j).show();
                                 // std::cout << "Move: " << x << " " << y << " " << i << " " << j << std::endl;
                             }
                         }
                     }
-                }
+                }*/
 
                 std::vector<PlayeChessEngine::Move> get_moves(int x, int y) {
                     std::vector<PlayeChessEngine::Move> moves;
                     for(int i = 0; i < 8; i++) {
                         for(int j = 0; j < 8; j++) {
-                            if(board[x][y]->validation_function(board, i - x, j - y)) {
+                            if(this->board[x][y]->validation_function(this->board, i, j)) {
                                 moves.push_back(PlayeChessEngine::Move(x, y, i, j));
                             }
                         }
@@ -278,17 +295,30 @@ namespace PlayeChessEngine {
         };
     }
     
-    // TODO check_path function
-    // TODO check_check function
-    // TODO check_checkmate function
-    // TODO check_draw function
-        // TODO check_stalemate function
-        // TODO check_fifty_move_rule function
-        // TODO check_threefold_repetition function
-        // TODO check_insufficient_material function
-    // TODO check_promotion function
-    // TODO check_castling function
-    // TODO check_en_passant function
+    // TODO anti_autocheck
+        // predict_move()
+        // king_eatable()
+        // move_back
+
+    // TODO check_check
+    // TODO check_checkmate
+    // TODO Draw conditions
+        // check_stalemate()
+        // check_fifty_move_rule()
+        // check_threefold_repetition()
+        // check_insufficient_material()
+
+    // TODO Promotion
+        // check_promotion()
+        // promote()
+
+    // TODO Castling
+        // check_castling()
+        // castle()
+
+    // TODO En passant
+        // check_en_passant()
+        // en_passant()
     
     class PCE {
         private:
@@ -296,14 +326,13 @@ namespace PlayeChessEngine {
             PlayeChessEngine::board::Board board;
         public:
             PCE() {
-                board.print_board();
                 for(int i = 0; i < 8; i++) {
-                    std::vector<Move> mvs = board.get_moves(0, i);
+                    this->moves = board.get_moves(0, i);
                     std::vector<std::vector<int>> mvsc;
-                    for(auto move : mvs) {
+                    for(auto move : this->moves) {
                         mvsc.push_back(move.get_coords());
                     }
-                    board.print_board(mvsc);   
+                    board.print_board(mvsc);
                 }
             }
     };
