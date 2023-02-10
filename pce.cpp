@@ -333,6 +333,10 @@ namespace PlayeChessEngine {
                     std::cout <<  "    a b c d e f g h" << std::endl;
                 }
 
+                std::array<std::array<pieces::Piece*, 8>, 8> get_board() {
+                    return this->board;
+                };
+
                 pieces::Piece* get_piece(int x, int y) {
                     return this->board[x][y];
                 };
@@ -345,6 +349,26 @@ namespace PlayeChessEngine {
                                 continue;
                             if(this->board[x][y]->validation_function(this->board, i, j)) {
                                 moves.push_back(PlayeChessEngine::Move(x, y, i, j));
+                            }
+                        }
+                    }
+                    return moves;
+                }
+
+                std::vector<PlayeChessEngine::Move> get_moves(std::array<std::array<pieces::Piece*, 8>, 8> brd, bool white) {
+                    std::vector<PlayeChessEngine::Move> moves;
+                    for(int i = 0; i < 8; i++) {
+                        for(int j = 0; j < 8; j++) {
+                            if(brd[i][j] == nullptr)
+                                continue;
+                            if(white != brd[i][j]->is_white)
+                                continue;
+                            for(int k = 0; k < 8; k++) {
+                                for(int l = 0; l < 8; l++) {
+                                    if(brd[i][j]->validation_function(brd, k, l)) {
+                                        moves.push_back(PlayeChessEngine::Move(i, j, k, l));
+                                    }
+                                }
                             }
                         }
                     }
@@ -382,6 +406,14 @@ namespace PlayeChessEngine {
             PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board();
         public:
             PCE() {
+                /*for(int i = 0; i < 8; i++) {
+                    this->moves = board.get_moves(0, i);
+                    std::vector<std::vector<int>> mvsc;
+                    for(auto move : this->moves) {
+                        mvsc.push_back(move.get_coords());
+                    }
+                    board.print_board(mvsc);
+                }
                 for(int i = 0; i < 8; i++) {
                     this->moves = board.get_moves(1, i);
                     std::vector<std::vector<int>> mvsc;
@@ -389,15 +421,11 @@ namespace PlayeChessEngine {
                         mvsc.push_back(move.get_coords());
                     }
                     board.print_board(mvsc);
-                }
-                /*for(int i = 0; i < 8; i++) {
-                    this->moves = board.get_moves(1, i);
-                    std::vector<std::vector<int>> mvsc;
-                    for(auto move : this->moves) {
-                        mvsc.push_back(move.get_coords());
-                    }
-                    board.print_board(mvsc);
                 }*/
+
+                for(Move el : this->board.get_moves(this->board.get_board(), true)) {
+                    el.show();
+                }
             }
     };
 }
