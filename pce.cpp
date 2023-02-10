@@ -136,25 +136,24 @@ namespace PlayeChessEngine {
                         // TODO Add pawn takes
                         int x_diff = x_final - this->coords[0];
                         int y_diff = y_final - this->coords[1];
-                        if(y_diff == 0 && x_diff != 0) {
-                            std::cout << "Valid path" << std::endl;
-                            if(this->is_white) {
-                                if (x_diff == 1)
-                                    std::cout << "1" << std::endl; return validate_validation(board, x_final, y_final);
-                                if(x_diff == 2 && !this->has_moved) {
-                                    std::cout << "2" << std::endl; 
-                                    if(validate_validation(board, x_final, y_final))
-                                        return check_path(x_final, y_final, board);
+
+                        if (y_diff == 0 && x_diff != 0) {
+                            if (this->is_white) {
+                                if (x_diff == 1) {
+                                    if (board[x_final][y_final] == nullptr)
+                                        return true;
+                                } else if (x_diff == 2 && !this->has_moved) {
+                                    if (board[x_final][y_final] == nullptr && board[x_final][y_final - 1] == nullptr)
+                                        return true;
                                 }
-                                return false;
                             } else {
-                                if (x_diff == -1)
-                                    return validate_validation(board, x_final, y_final);
-                                if(x_diff == -2 && !this->has_moved) {
-                                    if(validate_validation(board, x_final, y_final))
-                                        return check_path(x_final, y_final, board);
+                                if (x_diff == -1) {
+                                    if (board[x_final][y_final] == nullptr)
+                                        return true;
+                                } else if (x_diff == -2 && !has_moved) {
+                                    if (board[x_final][y_final] == nullptr && board[x_final][y_final + 1] == nullptr)
+                                        return true;
                                 }
-                                return false;
                             }
                         }
                         return false;
@@ -383,7 +382,6 @@ namespace PlayeChessEngine {
             PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board();
         public:
             PCE() {
-                this->board.print_board();
                 for(int i = 0; i < 8; i++) {
                     this->moves = board.get_moves(1, i);
                     std::vector<std::vector<int>> mvsc;
