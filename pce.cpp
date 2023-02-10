@@ -3,7 +3,7 @@
  > Code by SinisterIcy
  > Version INFDEV
  > Licensed under the GNU General Public License v3.0
- > Github: https://github.com/PCE-Engine/PCE-Cpp
+ > Github: https://github.com/PCE-Engine/PCE
 */
 
 #include <iostream>
@@ -403,10 +403,11 @@ namespace PlayeChessEngine {
     class PCE {
         private:
             std::vector<Move> moves;
-            PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board();
+            PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("rnbqkbnr/pppppppp/8/8/8/8/8/RNBQKBNR");
         public:
             PCE() {
-                /*for(int i = 0; i < 8; i++) {
+                this->board.print_board();
+                for(int i = 0; i < 8; i++) {
                     this->moves = board.get_moves(0, i);
                     std::vector<std::vector<int>> mvsc;
                     for(auto move : this->moves) {
@@ -414,7 +415,7 @@ namespace PlayeChessEngine {
                     }
                     board.print_board(mvsc);
                 }
-                for(int i = 0; i < 8; i++) {
+                /*for(int i = 0; i < 8; i++) {
                     this->moves = board.get_moves(1, i);
                     std::vector<std::vector<int>> mvsc;
                     for(auto move : this->moves) {
@@ -423,9 +424,9 @@ namespace PlayeChessEngine {
                     board.print_board(mvsc);
                 }*/
 
-                for(Move el : this->board.get_moves(this->board.get_board(), true)) {
+                /*for(Move el : this->board.get_moves(this->board.get_board(), true)) {
                     el.show();
-                }
+                }*/
             }
     };
 }
