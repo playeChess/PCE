@@ -12,54 +12,136 @@
 #include <vector>
 #include <Windows.h>
 
+/**
+ * @brief PlayeChessEngine is the namespace for the PCE engine who is made for the eChess project (playechess.com)
+*/
 namespace PlayeChessEngine {
 
+    /**
+     * @brief Move is a class that represents a move (start square and end square)
+    */
     class Move {
         private:
+            /**
+             * @brief The x coordinate of the start square
+            */
             int start_square_x;
+            /**
+             * @brief The y coordinate of the start square
+            */
             int start_square_y;
+            /**
+             * @brief The x coordinate of the end square
+            */
             int end_square_x;
+            /**
+             * @brief The y coordinate of the end square
+            */
             int end_square_y;
         public:
+            /**
+             * @brief Construct a new Move object
+             * 
+             * @param start_square_x The x coordinate of the start square
+             * @param start_square_y The y coordinate of the start square
+             * @param end_square_x The x coordinate of the end square
+             * @param end_square_y The y coordinate of the end square
+            */
             Move(int start_square_x, int start_square_y, int end_square_x, int end_square_y) {
                 this->start_square_x = start_square_x;
                 this->start_square_y = start_square_y;
                 this->end_square_x = end_square_x;
                 this->end_square_y = end_square_y;
             };
+
+            /**
+             * @brief Shows the move in a readable format
+             * 
+             * @return Formatted move (std::string)
+            */
             std::string show() {
                 std::string files = "abcdefgh";
                 return std::string(1, files[start_square_y]) + std::to_string(start_square_x + 1) + " -> " + std::string(1, files[end_square_y]) + std::to_string(end_square_x + 1);
             }
+
+            /**
+             * @brief Get the start coords
+             * 
+             * @return The start coords (std::vector<int>)
+            */
             std::vector<int> get_start_coords() {
                 return {this->start_square_x, this->start_square_y};
             }
-            std::vector<int> get_coords() {
+            /**
+             * @brief Get the end coords
+             * 
+             * @return The end coords (std::vector<int>)
+            */
+            std::vector<int> get_end_coords() {
                 return {this->end_square_x, this->end_square_y};
             }
+
+            /**
+             * @brief Checks if the move is in a vector of moves
+             * 
+             * @param moves The vector of moves
+             * @return True if the move is in the vector, false if not (bool)
+            */
             bool am_in(std::vector<Move> moves) {
                 for(int i = 0; i < moves.size(); i++) {
-                    if(moves[i].get_coords()[0] == this->get_coords()[0] && moves[i].get_coords()[1] == this->get_coords()[1])
+                    if(moves[i].get_end_coords()[0] == this->get_end_coords()[0] && moves[i].get_end_coords()[1] == this->get_end_coords()[1])
                         return true;
                 }
                 return false;
             }
     };
 
+    /**
+     * @brief Namespace for things related to the board
+    */
     namespace board {
 
+        /**
+         * @brief Namespace for things related to the pieces
+        */
         namespace pieces {
 
+            /**
+             * @brief The piece type enum (p = pawn, r = rook, n = knight, b = bishop, q = queen, k = king)
+            */
             enum piece_type { p, r, n, b, q, k };
 
+            /**
+             * @brief The piece class (abstract)
+            */
             class Piece {
                 protected:
+                    /**
+                     * @brief The type of the piece
+                    */
                     piece_type type;
+                    /**
+                     * @brief The coordinates of the piece
+                    */
                     int coords[2] = {0, 0};
-                    std::array<std::array<int, 8>, 8> test = {{{0, 1, 2, 3, 4, 5, 6, 7}, {8, 9, 10, 11, 12, 13, 14, 15}, {16, 17, 18, 19, 20, 21, 22, 23}, {24, 25, 26, 27, 28, 29, 30, 31}, {32, 33, 34, 35, 36, 37, 38, 39}, {40, 41, 42, 43, 44, 45, 46, 47}, {48, 49, 50, 51, 52, 53, 54, 55}, {56, 57, 58, 59, 60, 61, 62, 63}}};
                 public:
+                    /**
+                     * @brief The color of the piece (true = white, false = black)
+                    */
                     bool is_white;
+                    /**
+                     * @brief If the piece is a king (true = king, false = not king)
+                    */
                     bool is_king = false;
+
+                    /**
+                     * @brief Construct a new Piece object
+                     * 
+                     * @param type The type of the piece (refer to the piece_type enum)
+                     * @param is_white The color of the piece (true = white, false = black)
+                     * @param x The x coordinate of the piece (0-7)
+                     * @param y The y coordinate of the piece (0-7)
+                    */
                     Piece(piece_type type, bool is_white, int x, int y) {
                         this->type = type;
                         this->is_white = is_white;
@@ -67,13 +149,32 @@ namespace PlayeChessEngine {
                         this->coords[1] = y;
                     }
 
+                    /**
+                     * @brief Validates the move of the piece (abstract)
+                     * 
+                     * @return If the move is valid (bool)
+                    */
                     virtual bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) { return false; };
 
+                    /**
+                     * @brief Updates the coordinates of the piece
+                     * 
+                     * @param x The new x coordinate of the piece (0-7)
+                     * @param y The new y coordinate of the piece (0-7)
+                     */
                     void update_coords(int x, int y) {
                         this->coords[0] = x;
                         this->coords[1] = y;
                     }
 
+                    /**
+                     * @brief Validates the move of the piece (checks if the landing square is valid)
+                     * 
+                     * @param board The board
+                     * @param x_final The x coordinate of the landing square
+                     * @param y_final The y coordinate of the landing square
+                     * @return If the landing square is valid (bool)
+                     */
                     bool validate_validation(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
                         if(board[x_final][y_final] == nullptr)
                             return true;
@@ -82,6 +183,14 @@ namespace PlayeChessEngine {
                         return true;
                     }
 
+                    /**
+                     * @brief Checks the path from the piece to the landing square
+                     * 
+                     * @param x_final The final x coordinate
+                     * @param y_final The final y coordinate
+                     * @param board The board
+                     * @return Whether the path is clear (bool)
+                     */
                     bool check_path(int x_final, int y_final, std::array<std::array<Piece*, 8>, 8> board) {
                         int x_diff = x_final - this->coords[0];
                         int y_diff = y_final - this->coords[1];
@@ -133,6 +242,11 @@ namespace PlayeChessEngine {
                         return true;
                     }
 
+                    /**
+                     * @brief Shows the piece in a readable format
+                     * 
+                     * @return The formatted piece (std::string)
+                     */
                     std::string show() {
                         if (this->is_white) {
                             std::string piece_names[6] = {"P", "R", "N", "B", "Q", "K"};
@@ -143,11 +257,35 @@ namespace PlayeChessEngine {
                     }
             };
 
+            /**
+             * @brief The pawn piece (inherits from Piece)
+             * 
+             */
             class Pawn : public Piece {
                 private:
+                    /**
+                     * @brief If the pawn has moved
+                     * 
+                     */
                     bool has_moved = false;
                 public:
+                    /**
+                     * @brief Construct a new Pawn object
+                     * 
+                     * @param is_white Whether the pawn is white or black (true = white, false = black)
+                     * @param x The x coordinate of the pawn
+                     * @param y The y coordinate of the pawn
+                     */
                     Pawn(bool is_white, int x, int y) : Piece(p, is_white, x, y) {};
+
+                    /**
+                     * @brief Validates the move of the pawn (combines the other validation functions)
+                     * 
+                     * @param board The board
+                     * @param x_final The x coordinate of the landing square
+                     * @param y_final The y coordinate of the landing square
+                     * @return If the move is valid (bool)
+                     */
                     bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
                         // TODO Add pawn takes
                         int x_diff = x_final - this->coords[0];
@@ -176,11 +314,35 @@ namespace PlayeChessEngine {
                     }
             };
 
+            /**
+             * @brief The rook piece (inherits from Piece)
+             * 
+             */
             class Rook : public Piece {
                 private:
+                    /**
+                     * @brief If the rook has moved
+                     * 
+                     */
                     bool has_moved = false;
                 public:
+                    /**
+                     * @brief Construct a new Rook object
+                     * 
+                     * @param is_white Whether the rook is white or black (true = white, false = black)
+                     * @param x The x coordinate of the rook
+                     * @param y The y coordinate of the rook
+                     */
                     Rook(bool is_white, int x, int y) : Piece(r, is_white, x, y) {};
+
+                    /**
+                     * @brief Validates the move of the rook (combines the other validation functions)
+                     * 
+                     * @param board The board
+                     * @param x_final The x coordinate of the landing square
+                     * @param y_final The y coordinate of the landing square
+                     * @return If the move is valid (bool)
+                     */
                     bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
                         int x_diff = x_final - this->coords[0];
                         int y_diff = y_final - this->coords[1];
@@ -192,9 +354,29 @@ namespace PlayeChessEngine {
                     };
             };
 
+            /**
+             * @brief The knight piece (inherits from Piece)
+             * 
+             */
             class Knight : public Piece {
                 public:
+                    /**
+                     * @brief Construct a new Knight object
+                     * 
+                     * @param is_white Whether the knight is white or black (true = white, false = black)
+                     * @param x The x coordinate of the knight
+                     * @param y The y coordinate of the knight
+                     */
                     Knight(bool is_white, int x, int y) : Piece(n, is_white, x, y) {};
+
+                    /**
+                     * @brief Validates the move of the knight (combines the other validation functions)
+                     * 
+                     * @param board The board
+                     * @param x_final The x coordinate of the landing square
+                     * @param y_final The y coordinate of the landing square
+                     * @return If the move is valid (bool)
+                     */
                     bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
                         int x_diff = x_final - this->coords[0];
                         int y_diff = y_final - this->coords[1];
@@ -204,9 +386,29 @@ namespace PlayeChessEngine {
                     };
             };
 
+            /**
+             * @brief The bishop piece (inherits from Piece)
+             * 
+             */
             class Bishop : public Piece {
                 public:
+                    /**
+                     * @brief Construct a new Bishop object
+                     * 
+                     * @param is_white Whether the bishop is white or black (true = white, false = black)
+                     * @param x The x coordinate of the bishop
+                     * @param y The y coordinate of the bishop
+                     */
                     Bishop(bool is_white, int x, int y) : Piece(b, is_white, x, y) {};
+
+                    /**
+                     * @brief Validates the move of the bishop (combines the other validation functions)
+                     * 
+                     * @param board The board
+                     * @param x_final The x coordinate of the landing square
+                     * @param y_final The y coordinate of the landing square
+                     * @return If the move is valid (bool)
+                     */
                     bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
                         int x_diff = x_final - this->coords[0];
                         int y_diff = y_final - this->coords[1];
@@ -218,9 +420,29 @@ namespace PlayeChessEngine {
                     };
             };
 
+            /**
+             * @brief The queen piece (inherits from Piece)
+             * 
+             */
             class Queen : public Piece {
                 public:
+                    /**
+                     * @brief Construct a new Queen object
+                     * 
+                     * @param is_white Whether the queen is white or black (true = white, false = black)
+                     * @param x The x coordinate of the queen
+                     * @param y The y coordinate of the queen
+                     */
                     Queen(bool is_white, int x, int y) : Piece(q, is_white, x, y) {};
+
+                    /**
+                     * @brief Validates the move of the queen (combines the other validation functions)
+                     * 
+                     * @param board The board
+                     * @param x_final The x coordinate of the landing square
+                     * @param y_final The y coordinate of the landing square
+                     * @return If the move is valid (bool)
+                     */
                     bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
                         int x_diff = x_final - this->coords[0];
                         int y_diff = y_final - this->coords[1];
@@ -232,13 +454,37 @@ namespace PlayeChessEngine {
                     };
             };
 
+            /**
+             * @brief The king piece (inherits from Piece)
+             * 
+             */
             class King : public Piece {
                 private:
+                    /**
+                     * @brief Whether the king has moved or not
+                     * 
+                     */
                     bool has_moved = false;
                 public:
+                    /**
+                     * @brief Construct a new King object
+                     * 
+                     * @param is_white Whether the king is white or black (true = white, false = black)
+                     * @param x The x coordinate of the king
+                     * @param y The y coordinate of the king
+                     */
                     King(bool is_white, int x, int y) : Piece(k, is_white, x, y) {
                         this->is_king = true;
                     };
+
+                    /**
+                     * @brief Validates the move of the king (combines the other validation functions)
+                     * 
+                     * @param board The board
+                     * @param x_final The x coordinate of the landing square
+                     * @param y_final The y coordinate of the landing square
+                     * @return If the move is valid (bool)
+                     */
                     bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
                         int x_diff = x_final - this->coords[0];
                         int y_diff = y_final - this->coords[1];
@@ -249,17 +495,36 @@ namespace PlayeChessEngine {
             };
         }
 
+        /**
+         * @brief The board class
+         * 
+         */
         class Board {
             private:
+                /**
+                 * @brief The board
+                 * 
+                 */
                 std::array<std::array<pieces::Piece*, 8>, 8> board = {{{nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}}};
 
             public:
                 // TODO Add the funcitonnality for w KQkq - 0 1
+                /**
+                 * @brief Construct a new Board object
+                 * 
+                 * @param fen The fen string
+                 */
                 Board(std::string fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
                     fen = fen.substr(0, fen.find(" "));
                     load_fen(fen);
                 };
 
+                /**
+                 * @brief Reverses the fen string (for loading the board)
+                 * 
+                 * @param fen The fen string
+                 * @return The reversed fen (std::string)
+                 */
                 std::string reverse_fen(std::string fen) {
                     std::vector<std::string> fen_split;
                     std::string rt = "";
@@ -279,6 +544,11 @@ namespace PlayeChessEngine {
                     return rt.substr(0, rt.size() - 1);
                 }
 
+                /**
+                 * @brief Loads the board from a fen string
+                 * 
+                 * @param fen The fen string
+                 */
                 void load_fen(std::string fen) {
                     fen = reverse_fen(fen);
                     int x = 0;
@@ -324,6 +594,12 @@ namespace PlayeChessEngine {
                     }
                 }
 
+                /**
+                 * @brief Prints the board (for console only)
+                 * 
+                 * @param moves The moves to highlight
+                 * @param board The board to print
+                 */
                 void print_board(std::vector<std::vector<int>> moves = {}, std::array<std::array<pieces::Piece*, 8>, 8> board = {}) {
                     if(board == std::array<std::array<pieces::Piece*, 8>, 8> {})
                         board = this->board;
@@ -353,14 +629,34 @@ namespace PlayeChessEngine {
                     std::cout <<  "    a b c d e f g h" << std::endl;
                 }
 
+                /**
+                 * @brief Gets the board
+                 * 
+                 * @return The board (std::array<std::array<pieces::Piece*, 8>, 8>)
+                 */
                 std::array<std::array<pieces::Piece*, 8>, 8> get_board() {
                     return this->board;
                 };
 
+                /**
+                 * @brief Gets a piece from the board
+                 * 
+                 * @param x The x coordinate
+                 * @param y The y coordinate
+                 * @return The piece (pieces::Piece*)
+                 */
                 pieces::Piece* get_piece(int x, int y) {
                     return this->board[x][y];
                 };
 
+                /**
+                 * @brief Gets the moves for a piece
+                 * 
+                 * @param x The x coordinate
+                 * @param y The y coordinate
+                 * @param from_premove If the function is called from premove_check (to prevent infinite recursion)
+                 * @return The moves (std::vector<PlayeChessEngine::Move>)
+                 */
                 std::vector<PlayeChessEngine::Move> get_moves(int x, int y, bool from_premove = false) {
                     std::vector<PlayeChessEngine::Move> moves;
                     for(int i = 0; i < 8; i++) {
@@ -382,6 +678,13 @@ namespace PlayeChessEngine {
                     return moves;
                 }
 
+                /**
+                 * @brief Gets all the moves for a color
+                 * 
+                 * @param white If the color is white
+                 * @param from_premove If the function is called from premove_check (to prevent infinite recursion)
+                 * @return The moves (std::vector<PlayeChessEngine::Move>)
+                 */
                 std::vector<PlayeChessEngine::Move> get_all_moves(std::array<std::array<pieces::Piece*, 8>, 8> brd, bool white, bool from_premove = false) {
                     std::vector<PlayeChessEngine::Move> moves;
                     for(int i = 0; i < 8; i++) {
@@ -398,44 +701,94 @@ namespace PlayeChessEngine {
                     return moves;
                 }
 
+                /**
+                 * @brief Checks if a color is in check
+                 * 
+                 * @param white If the color is white
+                 * @return If the color is in check (bool)
+                 */
                 bool is_check(bool white) {
                     for(auto move : this->get_all_moves(this->board, !white, true)) {
-                        if(this->board[move.get_coords()[0]][move.get_coords()[1]] == nullptr)
+                        if(this->board[move.get_end_coords()[0]][move.get_end_coords()[1]] == nullptr)
                             continue;
-                        if(this->board[move.get_coords()[0]][move.get_coords()[1]]->is_king)
+                        if(this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]->is_king)
                             return true;
                     }
                     return false;
                 }
 
+                /**
+                 * @brief Transfer a piece from a position to another
+                 * 
+                 * @param board The board to transfer the piece on
+                 * @param start_x The x coordinate of the start position
+                 * @param start_y The y coordinate of the start position
+                 * @param end_x The x coordinate of the end position
+                 * @param end_y The y coordinate of the end position
+                 * @return Board with the piece positon updated (std::array<std::array<pieces::Piece*, 8>, 8>) 
+                 */
                 std::array<std::array<pieces::Piece*, 8>, 8> transfer(std::array<std::array<pieces::Piece*, 8>, 8> board, int start_x, int start_y, int end_x, int end_y) {
                     board[end_x][end_y] = board[start_x][start_y];
                     board[start_x][start_y] = nullptr;
                     return board;
                 }
 
+                /**
+                 * @brief Plays one move in the future to check if it puts the king in check
+                 * 
+                 * @param move The move to check
+                 * @param white If the color is white
+                 * @return If the move is legal (bool)
+                 */
                 bool premove_check(PlayeChessEngine::Move move, bool white) {
                     if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr)
                         throw std::invalid_argument("No piece at start coords");
                     std::array<std::array<pieces::Piece*, 8>, 8> backup = this->board;
-                    this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_coords()[0], move.get_coords()[1]);
+                    this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_end_coords()[0], move.get_end_coords()[1]);
                     bool check = this->is_check(white);
                     this->board = backup;
                     return check;
                 }
 
+                /**
+                 * @brief Plays a move
+                 * 
+                 * @param move The move to play
+                 * @param white If the color is white
+                 * @return If the move was played (bool)
+                 */
                 bool move(PlayeChessEngine::Move move, bool white) {
                     if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr || this->board[move.get_start_coords()[0]][move.get_start_coords()[1]]->is_white != white)
                         return false;
                     if(move.am_in(this->get_moves(move.get_start_coords()[0], move.get_start_coords()[1]))) {
-                        this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_coords()[0], move.get_coords()[1]);
-                        this->board[move.get_coords()[0]][move.get_coords()[1]]->update_coords(move.get_coords()[0], move.get_coords()[1]);
+                        this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_end_coords()[0], move.get_end_coords()[1]);
+                        this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]->update_coords(move.get_end_coords()[0], move.get_end_coords()[1]);
                         return true;
                     }
                     return false;
                 }
+
+                /**
+                 * @brief Gets the status of the game
+                 * 
+                 * @param white 
+                 * @return 0 if the game is not over, 1 if it is checkmate, 2 if it is stalemate (int)
+                 */
+                int status(bool white) {
+                    if(this->get_all_moves(this->board, white).size() == 0) {
+                        if(this->is_check(white)) {
+                            return 1;
+                        } else {
+                            return 2;
+                        }
+                    }
+                    return 0;
+                }
         };
     }
+
+    // TODO Endgame
+        // check_checkmate()
 
     // TODO Draw conditions
         // check_stalemate()
@@ -455,15 +808,41 @@ namespace PlayeChessEngine {
         // check_en_passant()
         // en_passant()
     
+    /**
+     * @brief PCE is the actual chess engine
+     * 
+     */
     class PCE {
         private:
+            /**
+             * @brief The moves played
+             * 
+             */
             std::vector<Move> moves;
+            /**
+             * @brief The board
+             * 
+             */
             PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board();
         public:
+            /**
+             * @brief Construct a new PCE object
+             * 
+             */
             PCE() {}
 
+            /**
+             * @brief Plays a move
+             * 
+             * @param white If the color is white
+             * @return If the move was played (bool)
+             */
             bool move(bool white) {
                 system("cls");
+                std::vector <Move> moves = this->board.get_all_moves(this->board.get_board(), white);
+                for(auto move : moves) {
+                    std::cout << move.show() << std::endl;
+                }
                 std::string move;
                 if(white)
                     std::cout << "White to play" << std::endl;
@@ -489,6 +868,10 @@ namespace PlayeChessEngine {
                 return false;
             }
 
+            /**
+             * @brief Starts the game
+             * 
+             */
             void main() {
                 int move_count = 0;
                 bool break_loop = false;
