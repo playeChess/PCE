@@ -14,11 +14,6 @@
 
 namespace PlayeChessEngine {
 
-    template<typename Base, typename T>
-    inline bool instanceof(const T *ptr) {
-        return dynamic_cast<const Base*>(ptr) != nullptr;
-    }
-
     class Move {
         private:
             int start_square_x;
@@ -41,6 +36,13 @@ namespace PlayeChessEngine {
             }
             std::vector<int> get_coords() {
                 return {this->end_square_x, this->end_square_y};
+            }
+            bool am_in(std::vector<Move> moves) {
+                for(int i = 0; i < moves.size(); i++) {
+                    if(moves[i].get_coords()[0] == this->get_coords()[0] && moves[i].get_coords()[1] == this->get_coords()[1])
+                        return true;
+                }
+                return false;
             }
     };
 
@@ -283,7 +285,7 @@ namespace PlayeChessEngine {
                         } else if(c == '8') {
                             continue;
                         } else if(c >= '0' && c <= '9') {
-                            x += std::stoi(std::string(1, c));
+                            y += c - '0';
                         } else {
                             bool is_white = c >= 'A' && c <= 'Z';
                             switch(c) {
@@ -415,13 +417,15 @@ namespace PlayeChessEngine {
                     this->board = backup;
                     return check;
                 }
+
+                void move(PlayeChessEngine::Move move) {
+                    if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr)
+                        throw std::invalid_argument("No piece at start coords");
+                    if(move.am_in(this->get_moves(move.get_start_coords()[0], move.get_start_coords()[1])))
+                        this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_coords()[0], move.get_coords()[1]);
+                }
         };
     }
-    
-    // TODO anti_autocheck
-        // predict_move()
-        // king_eatable()
-        // move_back()
 
     // TODO Draw conditions
         // check_stalemate()
@@ -444,29 +448,38 @@ namespace PlayeChessEngine {
     class PCE {
         private:
             std::vector<Move> moves;
-            PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("rnbqkbnr/ppppqppp/8/8/8/8/PPPPQPPP/RNBQKBNR");
+            PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board();
         public:
-            PCE() {
-                this->board.print_board();
-                for(int i = 0; i < 8; i++) {
-                    this->moves = board.get_moves(0, i);
-                    std::vector<std::vector<int>> mvsc;
-                    for(auto move : this->moves) {
-                        mvsc.push_back(move.get_coords());
-                    }
-                    board.print_board(mvsc);
-                }
-                for(int i = 0; i < 8; i++) {
-                    this->moves = board.get_moves(1, i);
-                    std::vector<std::vector<int>> mvsc;
-                    for(auto move : this->moves) {
-                        mvsc.push_back(move.get_coords());
-                    }
-                    board.print_board(mvsc);
-                }
+            PCE() {}
 
-                for(Move el : this->board.get_all_moves(this->board.get_board(), true)) {
-                    el.show();
+            bool move(bool white) {
+                std::string move;
+                if(white)
+                    std::cout << "White's turn" << std::endl;
+                else
+                    std::cout << "Black's turn" << std::endl;
+                this->board.print_board();
+                std::cin >> move;
+                if(move == "exit")
+                    return true;
+                if(move.length() != 4) {
+                    std::cout << "Invalid move" << std::endl;
+                    return false;
+                }
+                std::array<int, 2> start_coords = {move[1] - '1', move[0] - 'a'};
+                std::array<int, 2> end_coords = {move[3] - '1', move[2] - 'a'};
+                this->board.move(Move(start_coords[0], start_coords[1], end_coords[0], end_coords[1]));
+                return false;
+            }
+
+            void main() {
+                int move_count = 0;
+                bool break_loop = false;
+                while(true) {
+                    break_loop = this->move(move_count % 2 == 0);
+                    if(break_loop)
+                        break;
+                    move_count++;
                 }
             }
     };
