@@ -10,7 +10,7 @@
 #include <string>
 #include <array>
 #include <vector>
-#include <algorithm>
+#include <Windows.h>
 
 namespace PlayeChessEngine {
 
@@ -27,9 +27,9 @@ namespace PlayeChessEngine {
                 this->end_square_x = end_square_x;
                 this->end_square_y = end_square_y;
             };
-            void show() {
+            std::string show() {
                 std::string files = "abcdefgh";
-                std::cout << "From " << files[start_square_y] << start_square_x + 1 << " to " << files[end_square_y] << end_square_x + 1 << std::endl;
+                return std::string(1, files[start_square_y]) + std::to_string(start_square_x + 1) + " -> " + std::string(1, files[end_square_y]) + std::to_string(end_square_x + 1);
             }
             std::vector<int> get_start_coords() {
                 return {this->start_square_x, this->start_square_y};
@@ -68,6 +68,11 @@ namespace PlayeChessEngine {
                     }
 
                     virtual bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) { return false; };
+
+                    void update_coords(int x, int y) {
+                        this->coords[0] = x;
+                        this->coords[1] = y;
+                    }
 
                     bool validate_validation(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
                         if(board[x_final][y_final] == nullptr)
@@ -368,8 +373,9 @@ namespace PlayeChessEngine {
                                     moves.push_back(move);
                                     continue;
                                 }
-                                if(!this->premove_check(move, this->board[x][y]->is_white))
+                                if(!this->premove_check(move, this->board[x][y]->is_white)) {
                                     moves.push_back(move);
+                                }
                             }
                         }
                     }
@@ -418,11 +424,15 @@ namespace PlayeChessEngine {
                     return check;
                 }
 
-                void move(PlayeChessEngine::Move move) {
-                    if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr)
-                        throw std::invalid_argument("No piece at start coords");
-                    if(move.am_in(this->get_moves(move.get_start_coords()[0], move.get_start_coords()[1])))
+                bool move(PlayeChessEngine::Move move, bool white) {
+                    if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr || this->board[move.get_start_coords()[0]][move.get_start_coords()[1]]->is_white != white)
+                        return false;
+                    if(move.am_in(this->get_moves(move.get_start_coords()[0], move.get_start_coords()[1]))) {
                         this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_coords()[0], move.get_coords()[1]);
+                        this->board[move.get_coords()[0]][move.get_coords()[1]]->update_coords(move.get_coords()[0], move.get_coords()[1]);
+                        return true;
+                    }
+                    return false;
                 }
         };
     }
@@ -453,22 +463,29 @@ namespace PlayeChessEngine {
             PCE() {}
 
             bool move(bool white) {
+                system("cls");
                 std::string move;
                 if(white)
-                    std::cout << "White's turn" << std::endl;
+                    std::cout << "White to play" << std::endl;
                 else
-                    std::cout << "Black's turn" << std::endl;
+                    std::cout << "Black to play" << std::endl;
                 this->board.print_board();
-                std::cin >> move;
-                if(move == "exit")
-                    return true;
-                if(move.length() != 4) {
-                    std::cout << "Invalid move" << std::endl;
-                    return false;
+                bool valid = false;
+                while(!valid) {
+                    std::cin >> move;
+                    if(move == "exit")
+                        return true;
+                    while(move.length() != 4) {
+                        std::cout << "Invalid move" << std::endl;
+                        std::cin >> move;
+                    }
+                    std::array<int, 2> start_coords = {{move[1] - '1', move[0] - 'a'}};
+                    std::array<int, 2> end_coords = {{move[3] - '1', move[2] - 'a'}};
+                    Move move_obj = Move(start_coords[0], start_coords[1], end_coords[0], end_coords[1]);
+                    valid = this->board.move(move_obj, white);
+                    if(valid)
+                        this->moves.push_back(move_obj);
                 }
-                std::array<int, 2> start_coords = {move[1] - '1', move[0] - 'a'};
-                std::array<int, 2> end_coords = {move[3] - '1', move[2] - 'a'};
-                this->board.move(Move(start_coords[0], start_coords[1], end_coords[0], end_coords[1]));
                 return false;
             }
 
@@ -480,6 +497,13 @@ namespace PlayeChessEngine {
                     if(break_loop)
                         break;
                     move_count++;
+                }
+                for(int i = 0; i < this->moves.size(); i+=2) {
+                    std::cout << i / 2 + 1 << ".. " << this->moves[i].show();
+                    if(i + 1 < this->moves.size())
+                        std::cout << " " << this->moves[i + 1].show() << std::endl;
+                    else
+                        std::cout << std::endl;
                 }
             }
     };
