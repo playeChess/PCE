@@ -26,3 +26,4 @@
   - [ ] Fifty moves
   - [ ] Threefold repetition
   - [ ] Insufficient material
+- [x] Documentation
