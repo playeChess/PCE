@@ -14,6 +14,11 @@
 
 namespace PlayeChessEngine {
 
+    template<typename Base, typename T>
+    inline bool instanceof(const T *ptr) {
+        return dynamic_cast<const Base*>(ptr) != nullptr;
+    }
+
     class Move {
         private:
             int start_square_x;
@@ -355,7 +360,7 @@ namespace PlayeChessEngine {
                     return moves;
                 }
 
-                std::vector<PlayeChessEngine::Move> get_moves(std::array<std::array<pieces::Piece*, 8>, 8> brd, bool white) {
+                std::vector<PlayeChessEngine::Move> get_all_moves(std::array<std::array<pieces::Piece*, 8>, 8> brd, bool white) {
                     std::vector<PlayeChessEngine::Move> moves;
                     for(int i = 0; i < 8; i++) {
                         for(int j = 0; j < 8; j++) {
@@ -373,6 +378,17 @@ namespace PlayeChessEngine {
                         }
                     }
                     return moves;
+                }
+
+                bool is_check(bool white) {
+                    for(auto move : this->get_all_moves(this->board, !white)) {
+                        int x = move.get_coords()[0];
+                        int y = move.get_coords()[1];
+                        if(this->board[x][y] != nullptr && typeid(this->board[x][y]) == typeid(pieces::King)) {
+                            return true;
+                        }
+                    }
+                    return false;
                 }
         };
     }
@@ -403,30 +419,30 @@ namespace PlayeChessEngine {
     class PCE {
         private:
             std::vector<Move> moves;
-            PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("rnbqkbnr/pppppppp/8/8/8/8/8/RNBQKBNR");
+            PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board();
         public:
             PCE() {
                 this->board.print_board();
-                for(int i = 0; i < 8; i++) {
+                /*for(int i = 0; i < 8; i++) {
                     this->moves = board.get_moves(0, i);
                     std::vector<std::vector<int>> mvsc;
                     for(auto move : this->moves) {
                         mvsc.push_back(move.get_coords());
                     }
                     board.print_board(mvsc);
-                }
-                /*for(int i = 0; i < 8; i++) {
+                }*/
+                for(int i = 0; i < 8; i++) {
                     this->moves = board.get_moves(1, i);
                     std::vector<std::vector<int>> mvsc;
                     for(auto move : this->moves) {
                         mvsc.push_back(move.get_coords());
                     }
                     board.print_board(mvsc);
-                }*/
+                }
 
-                /*for(Move el : this->board.get_moves(this->board.get_board(), true)) {
+                for(Move el : this->board.get_all_moves(this->board.get_board(), true)) {
                     el.show();
-                }*/
+                }
             }
     };
 }
