@@ -36,6 +36,9 @@ namespace PlayeChessEngine {
                 std::string files = "abcdefgh";
                 std::cout << "From " << files[start_square_y] << start_square_x + 1 << " to " << files[end_square_y] << end_square_x + 1 << std::endl;
             }
+            std::vector<int> get_start_coords() {
+                return {this->start_square_x, this->start_square_y};
+            }
             std::vector<int> get_coords() {
                 return {this->end_square_x, this->end_square_y};
             }
@@ -54,6 +57,7 @@ namespace PlayeChessEngine {
                     std::array<std::array<int, 8>, 8> test = {{{0, 1, 2, 3, 4, 5, 6, 7}, {8, 9, 10, 11, 12, 13, 14, 15}, {16, 17, 18, 19, 20, 21, 22, 23}, {24, 25, 26, 27, 28, 29, 30, 31}, {32, 33, 34, 35, 36, 37, 38, 39}, {40, 41, 42, 43, 44, 45, 46, 47}, {48, 49, 50, 51, 52, 53, 54, 55}, {56, 57, 58, 59, 60, 61, 62, 63}}};
                 public:
                     bool is_white;
+                    bool is_king = false;
                     Piece(piece_type type, bool is_white, int x, int y) {
                         this->type = type;
                         this->is_white = is_white;
@@ -225,7 +229,9 @@ namespace PlayeChessEngine {
                 private:
                     bool has_moved = false;
                 public:
-                    King(bool is_white, int x, int y) : Piece(k, is_white, x, y) {};
+                    King(bool is_white, int x, int y) : Piece(k, is_white, x, y) {
+                        this->is_king = true;
+                    };
                     bool validation_function(std::array<std::array<Piece*, 8>, 8> board, int x_final, int y_final) {
                         int x_diff = x_final - this->coords[0];
                         int y_diff = y_final - this->coords[1];
@@ -311,7 +317,9 @@ namespace PlayeChessEngine {
                     }
                 }
 
-                void print_board(std::vector<std::vector<int>> moves = {}) {
+                void print_board(std::vector<std::vector<int>> moves = {}, std::array<std::array<pieces::Piece*, 8>, 8> board = {}) {
+                    if(board == std::array<std::array<pieces::Piece*, 8>, 8> {})
+                        board = this->board;
                     std::cout << "  #-----------------#" << std::endl;
                     for (int i = 0; i < 8; i++) {
                         std::cout << 8 - i << " | ";
@@ -326,8 +334,8 @@ namespace PlayeChessEngine {
                             }
                             if(skip)
                                 continue;
-                            if(this->board[7 - i][7 - j] != nullptr) {
-                                std::cout << this->board[7 - i][j]->show() << " ";
+                            if(board[7 - i][j] != nullptr) {
+                                std::cout << board[7 - i][j]->show() << " ";
                             } else {
                                 std::cout << "  ";
                             }
@@ -346,34 +354,36 @@ namespace PlayeChessEngine {
                     return this->board[x][y];
                 };
 
-                std::vector<PlayeChessEngine::Move> get_moves(int x, int y) {
+                std::vector<PlayeChessEngine::Move> get_moves(int x, int y, bool from_premove = false) {
                     std::vector<PlayeChessEngine::Move> moves;
                     for(int i = 0; i < 8; i++) {
                         for(int j = 0; j < 8; j++) {
                             if(this->board[x][y] == nullptr)
                                 continue;
                             if(this->board[x][y]->validation_function(this->board, i, j)) {
-                                moves.push_back(PlayeChessEngine::Move(x, y, i, j));
+                                PlayeChessEngine::Move move = PlayeChessEngine::Move(x, y, i, j);
+                                if(from_premove) {
+                                    moves.push_back(move);
+                                    continue;
+                                }
+                                if(!this->premove_check(move, this->board[x][y]->is_white))
+                                    moves.push_back(move);
                             }
                         }
                     }
                     return moves;
                 }
 
-                std::vector<PlayeChessEngine::Move> get_all_moves(std::array<std::array<pieces::Piece*, 8>, 8> brd, bool white) {
+                std::vector<PlayeChessEngine::Move> get_all_moves(std::array<std::array<pieces::Piece*, 8>, 8> brd, bool white, bool from_premove = false) {
                     std::vector<PlayeChessEngine::Move> moves;
                     for(int i = 0; i < 8; i++) {
                         for(int j = 0; j < 8; j++) {
                             if(brd[i][j] == nullptr)
                                 continue;
-                            if(white != brd[i][j]->is_white)
+                            if(brd[i][j]->is_white != white)
                                 continue;
-                            for(int k = 0; k < 8; k++) {
-                                for(int l = 0; l < 8; l++) {
-                                    if(brd[i][j]->validation_function(brd, k, l)) {
-                                        moves.push_back(PlayeChessEngine::Move(i, j, k, l));
-                                    }
-                                }
+                            for(auto move : this->get_moves(i, j, from_premove)) {
+                                moves.push_back(move);
                             }
                         }
                     }
@@ -381,14 +391,29 @@ namespace PlayeChessEngine {
                 }
 
                 bool is_check(bool white) {
-                    for(auto move : this->get_all_moves(this->board, !white)) {
-                        int x = move.get_coords()[0];
-                        int y = move.get_coords()[1];
-                        if(this->board[x][y] != nullptr && typeid(this->board[x][y]) == typeid(pieces::King)) {
+                    for(auto move : this->get_all_moves(this->board, !white, true)) {
+                        if(this->board[move.get_coords()[0]][move.get_coords()[1]] == nullptr)
+                            continue;
+                        if(this->board[move.get_coords()[0]][move.get_coords()[1]]->is_king)
                             return true;
-                        }
                     }
                     return false;
+                }
+
+                std::array<std::array<pieces::Piece*, 8>, 8> transfer(std::array<std::array<pieces::Piece*, 8>, 8> board, int start_x, int start_y, int end_x, int end_y) {
+                    board[end_x][end_y] = board[start_x][start_y];
+                    board[start_x][start_y] = nullptr;
+                    return board;
+                }
+
+                bool premove_check(PlayeChessEngine::Move move, bool white) {
+                    if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr)
+                        throw std::invalid_argument("No piece at start coords");
+                    std::array<std::array<pieces::Piece*, 8>, 8> backup = this->board;
+                    this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_coords()[0], move.get_coords()[1]);
+                    bool check = this->is_check(white);
+                    this->board = backup;
+                    return check;
                 }
         };
     }
@@ -419,18 +444,18 @@ namespace PlayeChessEngine {
     class PCE {
         private:
             std::vector<Move> moves;
-            PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board();
+            PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("rnbqkbnr/ppppqppp/8/8/8/8/PPPPQPPP/RNBQKBNR");
         public:
             PCE() {
                 this->board.print_board();
-                /*for(int i = 0; i < 8; i++) {
+                for(int i = 0; i < 8; i++) {
                     this->moves = board.get_moves(0, i);
                     std::vector<std::vector<int>> mvsc;
                     for(auto move : this->moves) {
                         mvsc.push_back(move.get_coords());
                     }
                     board.print_board(mvsc);
-                }*/
+                }
                 for(int i = 0; i < 8; i++) {
                     this->moves = board.get_moves(1, i);
                     std::vector<std::vector<int>> mvsc;
