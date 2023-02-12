@@ -38,6 +38,10 @@ namespace PlayeChessEngine {
              * @brief The y coordinate of the end square
             */
             int end_square_y;
+            /**
+             * @brief The castle type (0 = no castle, 1 = short castle, 2 = long castle)
+            */
+            int castle;
         public:
             /**
              * @brief Construct a new Move object
@@ -52,7 +56,17 @@ namespace PlayeChessEngine {
                 this->start_square_y = start_square_y;
                 this->end_square_x = end_square_x;
                 this->end_square_y = end_square_y;
+                this->castle = castle;
             };
+
+            /**
+             * @brief Construct a new Move object (for castling)
+             * 
+             * @param castle The castle type (0 = no castle, 1 = short castle, 2 = long castle)
+             */
+            Move(int castle) {
+                this->castle = castle;
+            }
 
             /**
              * @brief Shows the move in a readable format
@@ -61,6 +75,10 @@ namespace PlayeChessEngine {
             */
             std::string show() {
                 std::string files = "abcdefgh";
+                if(castle == 1)
+                    return "O-O";
+                if(castle == 2)
+                    return "O-O-O";
                 return std::string(1, files[start_square_y]) + std::to_string(start_square_x + 1) + " -> " + std::string(1, files[end_square_y]) + std::to_string(end_square_x + 1);
             }
 
@@ -129,10 +147,16 @@ namespace PlayeChessEngine {
                      * @brief The color of the piece (true = white, false = black)
                     */
                     bool is_white;
+
                     /**
-                     * @brief If the piece is a king (true = king, false = not king)
+                     * @brief If the piece has moved (mainly used for castling)
                     */
-                    bool is_king = false;
+                    bool has_moved = false;
+
+                    /**
+                     * @brief If the piece has moved two squares (mainly used for en passant)
+                    */
+                    bool has_moved_two = false;
 
                     /**
                      * @brief Construct a new Piece object
@@ -165,6 +189,15 @@ namespace PlayeChessEngine {
                     void update_coords(int x, int y) {
                         this->coords[0] = x;
                         this->coords[1] = y;
+                    }
+
+                    /**
+                     * @brief Get the type of the piece
+                     * 
+                     * @return The type (piece_type enum)
+                     */
+                    piece_type get_type() {
+                        return this->type;
                     }
 
                     /**
@@ -297,16 +330,20 @@ namespace PlayeChessEngine {
                                     if (board[x_final][y_final] == nullptr)
                                         return true;
                                 } else if (x_diff == 2 && !this->has_moved) {
-                                    if (board[x_final][y_final] == nullptr && board[x_final][y_final - 1] == nullptr)
+                                    if (board[x_final][y_final] == nullptr && board[x_final][y_final - 1] == nullptr) {
+                                        this->has_moved_two = true;
                                         return true;
+                                    }
                                 }
                             } else {
                                 if (x_diff == -1) {
                                     if (board[x_final][y_final] == nullptr)
                                         return true;
                                 } else if (x_diff == -2 && !has_moved) {
-                                    if (board[x_final][y_final] == nullptr && board[x_final][y_final + 1] == nullptr)
+                                    if (board[x_final][y_final] == nullptr && board[x_final][y_final + 1] == nullptr) {
+                                        this->has_moved_two = true;
                                         return true;
+                                    }
                                 }
                             }
                         }
@@ -319,12 +356,6 @@ namespace PlayeChessEngine {
              * 
              */
             class Rook : public Piece {
-                private:
-                    /**
-                     * @brief If the rook has moved
-                     * 
-                     */
-                    bool has_moved = false;
                 public:
                     /**
                      * @brief Construct a new Rook object
@@ -459,12 +490,6 @@ namespace PlayeChessEngine {
              * 
              */
             class King : public Piece {
-                private:
-                    /**
-                     * @brief Whether the king has moved or not
-                     * 
-                     */
-                    bool has_moved = false;
                 public:
                     /**
                      * @brief Construct a new King object
@@ -473,9 +498,7 @@ namespace PlayeChessEngine {
                      * @param x The x coordinate of the king
                      * @param y The y coordinate of the king
                      */
-                    King(bool is_white, int x, int y) : Piece(k, is_white, x, y) {
-                        this->is_king = true;
-                    };
+                    King(bool is_white, int x, int y) : Piece(k, is_white, x, y) {};
 
                     /**
                      * @brief Validates the move of the king (combines the other validation functions)
@@ -654,7 +677,7 @@ namespace PlayeChessEngine {
                  * 
                  * @param x The x coordinate
                  * @param y The y coordinate
-                 * @param from_premove If the function is called from premove_check (to prevent infinite recursion)
+                 * @param from_premove If the function is called from fmove_check (to prevent infinite recursion)
                  * @return The moves (std::vector<PlayeChessEngine::Move>)
                  */
                 std::vector<PlayeChessEngine::Move> get_moves(int x, int y, bool from_premove = false) {
@@ -669,7 +692,7 @@ namespace PlayeChessEngine {
                                     moves.push_back(move);
                                     continue;
                                 }
-                                if(!this->premove_check(move, this->board[x][y]->is_white)) {
+                                if(!this->fmove_check(move, this->board[x][y]->is_white)) {
                                     moves.push_back(move);
                                 }
                             }
@@ -682,7 +705,7 @@ namespace PlayeChessEngine {
                  * @brief Gets all the moves for a color
                  * 
                  * @param white If the color is white
-                 * @param from_premove If the function is called from premove_check (to prevent infinite recursion)
+                 * @param from_premove If the function is called from fmove_check (to prevent infinite recursion)
                  * @return The moves (std::vector<PlayeChessEngine::Move>)
                  */
                 std::vector<PlayeChessEngine::Move> get_all_moves(std::array<std::array<pieces::Piece*, 8>, 8> brd, bool white, bool from_premove = false) {
@@ -711,7 +734,7 @@ namespace PlayeChessEngine {
                     for(auto move : this->get_all_moves(this->board, !white, true)) {
                         if(this->board[move.get_end_coords()[0]][move.get_end_coords()[1]] == nullptr)
                             continue;
-                        if(this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]->is_king)
+                        if(this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]->get_type() == pieces::piece_type::k)
                             return true;
                     }
                     return false;
@@ -720,17 +743,19 @@ namespace PlayeChessEngine {
                 /**
                  * @brief Transfer a piece from a position to another
                  * 
-                 * @param board The board to transfer the piece on
                  * @param start_x The x coordinate of the start position
                  * @param start_y The y coordinate of the start position
                  * @param end_x The x coordinate of the end position
                  * @param end_y The y coordinate of the end position
-                 * @return Board with the piece positon updated (std::array<std::array<pieces::Piece*, 8>, 8>) 
                  */
-                std::array<std::array<pieces::Piece*, 8>, 8> transfer(std::array<std::array<pieces::Piece*, 8>, 8> board, int start_x, int start_y, int end_x, int end_y) {
-                    board[end_x][end_y] = board[start_x][start_y];
-                    board[start_x][start_y] = nullptr;
-                    return board;
+                void transfer(int start_x, int start_y, int end_x, int end_y) {
+                    std::cout << "Transfering piece from " << start_x << ", " << start_y << " to " << end_x << ", " << end_y << std::endl;
+                    std::string t;
+                    std::cin >> t;
+                    this->board[end_x][end_y] = this->board[start_x][start_y];
+                    this->board[start_x][start_y] = nullptr;
+                    this->board[end_x][end_y]->has_moved = true;
+                    this->board[end_x][end_y]->update_coords(end_x, end_y);
                 }
 
                 /**
@@ -740,11 +765,11 @@ namespace PlayeChessEngine {
                  * @param white If the color is white
                  * @return If the move is legal (bool)
                  */
-                bool premove_check(PlayeChessEngine::Move move, bool white) {
+                bool fmove_check(PlayeChessEngine::Move move, bool white) {
                     if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr)
                         throw std::invalid_argument("No piece at start coords");
                     std::array<std::array<pieces::Piece*, 8>, 8> backup = this->board;
-                    this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_end_coords()[0], move.get_end_coords()[1]);
+                    this->transfer(move.get_start_coords()[0], move.get_start_coords()[1], move.get_end_coords()[0], move.get_end_coords()[1]);
                     bool check = this->is_check(white);
                     this->board = backup;
                     return check;
@@ -761,8 +786,7 @@ namespace PlayeChessEngine {
                     if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr || this->board[move.get_start_coords()[0]][move.get_start_coords()[1]]->is_white != white)
                         return false;
                     if(move.am_in(this->get_moves(move.get_start_coords()[0], move.get_start_coords()[1]))) {
-                        this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_end_coords()[0], move.get_end_coords()[1]);
-                        this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]->update_coords(move.get_end_coords()[0], move.get_end_coords()[1]);
+                        this->transfer(move.get_start_coords()[0], move.get_start_coords()[1], move.get_end_coords()[0], move.get_end_coords()[1]);
                         return true;
                     }
                     return false;
@@ -784,14 +808,106 @@ namespace PlayeChessEngine {
                     }
                     return 0;
                 }
+
+                /**
+                 * @brief Checks if a row can castle
+                 * 
+                 * @param row The row to check
+                 * @param king_side If you want to check the king side
+                 * @return Whether the row can castle (bool)
+                 */
+                bool can_castle_row(int row, bool king_side) {
+                    if(king_side) {
+                        if(this->board[row][4] != nullptr && this->board[row][5] == nullptr && this->board[row][6] == nullptr && this->board[row][7] != nullptr) {
+                            if(this->board[row][4]->get_type() == pieces::piece_type::k && this->board[row][7]->get_type() == pieces::piece_type::r) {
+                                if(!this->board[row][4]->has_moved && !this->board[row][7]->has_moved) {
+                                    return true;
+                                }
+                                return false;
+                            }
+                            return false;
+                        }
+                        return false;
+                    } else {
+                        if(this->board[row][4] != nullptr && this->board[row][3] == nullptr && this->board[row][2] == nullptr && this->board[row][1] == nullptr && this->board[row][0] != nullptr) {
+                            if(this->board[row][4]->get_type() == pieces::piece_type::k && this->board[row][0]->get_type() == pieces::piece_type::r) {
+                                if(!this->board[row][4]->has_moved && !this->board[row][0]->has_moved) {
+                                    return true;
+                                }
+                                return false;
+                            }
+                            return false;
+                        }
+                        return false;
+                    }
+                }
+
+                /**
+                 * @brief Checks if a player can castle
+                 * 
+                 * @param white If the player is white
+                 * @param king_side If you want to check the king side
+                 * @return Whether the player can castle (bool)
+                 */
+                bool can_castle(bool white, bool king_side) {
+                    if(white) {
+                        return this->can_castle_row(0, king_side);
+                    }
+                    return this->can_castle_row(7, king_side);
+                }
+
+                /**
+                 * @brief Castles a row
+                 * 
+                 * @param row The row to castle
+                 * @param king_side If you want to castle the king side
+                 */
+                void castle_row(int row, bool king_side) {
+                    if(king_side) {
+                        this->transfer(row, 7, row, 5);
+                        this->transfer(row, 4, row, 6);
+
+                        this->transfer(row, 0, row, 3);
+                        this->transfer(row, 4, row, 2);
+                    }
+                }
+
+                /**
+                 * @brief Castles a player
+                 * 
+                 * @param white If the player is white
+                 * @param king_side If you want to castle the king side
+                 */
+                void castle(bool white, bool king_side) {
+                    if(white) {
+                        this->castle_row(0, king_side);
+                    } else {
+                        this->castle_row(7, king_side);
+                    }
+                }
+
+                /**
+                 * @brief Moves en passant
+                 * 
+                 * @param row The row to move
+                 * @param col The column to move
+                 */
+                void en_passant(int row, int col) {
+                    if(this->board[row][col]->get_type() == pieces::piece_type::p) {
+                        if(this->board[row][col]->is_white) {
+                            this->board[row + 1][col] = nullptr;
+                        } else {
+                            this->board[row - 1][col] = nullptr;
+                        }
+                    }
+                }
         };
     }
 
-    // TODO Endgame
-        // check_checkmate()
+    // TODO Castle
+        // Update castling rights (through check)
 
     // TODO Draw conditions
-        // check_stalemate()
         // check_fifty_move_rule()
         // check_threefold_repetition()
         // check_insufficient_material()
@@ -799,14 +915,6 @@ namespace PlayeChessEngine {
     // TODO Promotion
         // check_promotion()
         // promote()
-
-    // TODO Castling
-        // check_castling()
-        // castle()
-
-    // TODO En passant
-        // check_en_passant()
-        // en_passant()
     
     /**
      * @brief PCE is the actual chess engine
@@ -823,7 +931,11 @@ namespace PlayeChessEngine {
              * @brief The board
              * 
              */
-            PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board();
+            PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("r3k2r/8/8/8/8/8/8/R3K2R");
+            // Checkmate fen : rnbqkbnr/2pp1ppp/pp6/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR
+            // Stalemate fen : 4k3/8/8/8/8/8/8/3RKR1R
+            // Castling fen : r3k2r/8/8/8/8/8/8/R3K2R
+            // En passant fen : 8/7p/6P1/8/8/8/8/8
         public:
             /**
              * @brief Construct a new PCE object
@@ -840,9 +952,6 @@ namespace PlayeChessEngine {
             bool move(bool white) {
                 system("cls");
                 std::vector <Move> moves = this->board.get_all_moves(this->board.get_board(), white);
-                for(auto move : moves) {
-                    std::cout << move.show() << std::endl;
-                }
                 std::string move;
                 if(white)
                     std::cout << "White to play" << std::endl;
@@ -854,6 +963,19 @@ namespace PlayeChessEngine {
                     std::cin >> move;
                     if(move == "exit")
                         return true;
+                    if(move == "O-O") {
+                        if(this->board.can_castle(white, true)) {
+                            this->board.castle(white, true);
+                            this->moves.push_back(Move(1));
+                            return false;
+                        } return false;
+                    } if(move == "O-O-O") {
+                        if(this->board.can_castle(white, false)) {
+                            this->board.castle(white, false);
+                            this->moves.push_back(Move(2));
+                            return false;
+                        } return false;
+                    }
                     while(move.length() != 4) {
                         std::cout << "Invalid move" << std::endl;
                         std::cin >> move;
@@ -876,9 +998,24 @@ namespace PlayeChessEngine {
                 int move_count = 0;
                 bool break_loop = false;
                 while(true) {
-                    break_loop = this->move(move_count % 2 == 0);
+                    bool white = move_count % 2 == 0;
+                    break_loop = this->move(white);
                     if(break_loop)
                         break;
+                    if(this->board.status(!white) == 1) {
+                        system("cls");
+                        this->board.print_board();
+                        if(white)
+                            std::cout << "White wins (checkmate)" << std::endl;
+                        else
+                            std::cout << "Black wins (checkmate)" << std::endl;
+                        break;
+                    } else if(this->board.status(!white) == 2) {
+                        system("cls");
+                        this->board.print_board();
+                        std::cout << "Draw (stalemate)" << std::endl;
+                        break;
+                    }
                     move_count++;
                 }
                 for(int i = 0; i < this->moves.size(); i+=2) {
