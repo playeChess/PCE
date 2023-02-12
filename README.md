@@ -13,16 +13,17 @@
   - [x] King
 - [ ] Special moves
   - [x] Pawn double move
-  - [ ] Castling
+  - [x] Castling
   - [ ] En passant
 - [x] Moves
-- [ ] Checks
+- [x] Checks
   - [x] Concept of check
   - [x] Anti autocheck
-  - [ ] Checkmate
+  - [x] Checkmate
 - [ ] Promotion
 - [ ] Draws
-  - [ ] Stalemate
+  - [x] Stalemate
   - [ ] Fifty moves
   - [ ] Threefold repetition
   - [ ] Insufficient material
+- [x] Documentation
