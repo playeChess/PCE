@@ -13,7 +13,7 @@
   - [x] King
 - [ ] Special moves
   - [x] Pawn double move
-  - [ ] Castling
+  - [x] Castling
   - [ ] En passant
 - [x] Moves
 - [x] Checks
