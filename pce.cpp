@@ -734,6 +734,22 @@ namespace PlayeChessEngine {
 					return moves;
 				}
 
+				bool in(std::vector<std::vector<int>> vec, std::vector<int> val) {
+					for (auto v : vec) {
+						if (v == val)
+							return true;
+					}
+					return false;
+				}
+
+				std::vector<std::vector<int>> get_all_landing_moves(std::array<std::array<pieces::Piece *, 8>, 8> brd, bool white, bool from_premove = false) {
+					std::vector<std::vector<int>> moves;
+					for(auto move : this->get_all_moves(brd, white, from_premove)) {
+						moves.push_back(move.get_end_coords());
+					}
+					return moves;
+				}
+
 				/**
 				 * @brief Checks if a color is in check
 				 *
@@ -823,9 +839,11 @@ namespace PlayeChessEngine {
 					if (kingside) {
 						if (this->board[row][4] != nullptr && this->board[row][7] != nullptr && this->board[row][5] == nullptr && this->board[row][6] == nullptr) {
 							if (this->board[row][4]->get_type() == pieces::piece_type::k && this->board[row][7]->get_type() == pieces::piece_type::r && !this->board[row][4]->has_moved && !this->board[row][7]->has_moved) {
-								// TODO Add check for check and that the king does not pass through a square that is attacked by an enemy piece
-								if (!this->is_check(this->board[row][4]->is_white))
-									return true;
+								if (!this->is_check(this->board[row][4]->is_white)) {
+									if(!in(this->get_all_landing_moves(this->board, row != 0), {row, 5}) && !in(this->get_all_landing_moves(this->board, row != 0), {row, 6}))
+										return true;
+									return false;
+								}
 								return false;
 							}
 							return false;
@@ -834,9 +852,11 @@ namespace PlayeChessEngine {
 					}
 					if (this->board[row][4] != nullptr && this->board[row][0] != nullptr && this->board[row][1] == nullptr && this->board[row][2] == nullptr && this->board[row][3] == nullptr) {
 						if (this->board[row][4]->get_type() == pieces::piece_type::k && this->board[row][0]->get_type() == pieces::piece_type::r && !this->board[row][4]->has_moved && !this->board[row][0]->has_moved) {
-							// TODO Add check for check and that the king does not pass through a square that is attacked by an enemy piece
-							if (!this->is_check(this->board[row][4]->is_white))
-								return true;
+							if (!this->is_check(this->board[row][4]->is_white)) {
+								if(!in(this->get_all_landing_moves(this->board, row != 0), {row, 1}) && !in(this->get_all_landing_moves(this->board, row != 0), {row, 2}) && !in(this->get_all_landing_moves(this->board, row != 0), {row, 3}))
+									return true;
+								return false;
+							}
 							return false;
 						}
 						return false;
