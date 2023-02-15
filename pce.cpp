@@ -513,8 +513,10 @@ namespace PlayeChessEngine {
 					bool validation_function(std::array<std::array<Piece *, 8>, 8> board, int x_final, int y_final) {
 						int x_diff = x_final - this->coords[0];
 						int y_diff = y_final - this->coords[1];
-						if (abs(x_diff) <= 1 && abs(y_diff) <= 1 && (x_diff != 0 || y_diff != 0))
+						if (abs(x_diff) <= 1 && abs(y_diff) <= 1 && (x_diff != 0 || y_diff != 0)) {
+                            std::cout << "King validation " << this->coords[0] << " " << this->coords[1] << " - " << x_final << " " << y_final << std::endl;
 							return validate_validation(board, x_final, y_final);
+                        }
 						return false;
 					}
 			};
@@ -697,6 +699,7 @@ namespace PlayeChessEngine {
 								continue;
 							if (this->board[x][y]->validation_function(this->board, i, j)) {
 								PlayeChessEngine::Move move = PlayeChessEngine::Move(x, y, i, j);
+                                // std::cout << "Move of " << this->board[x][y]->show() << " from " << x << ", " << y << " to " << i << ", " << j << std::endl;
 								if (from_premove) {
 									moves.push_back(move);
 									continue;
@@ -808,8 +811,10 @@ namespace PlayeChessEngine {
 				 * @return If the move was played (bool)
 				 */
 				bool move(PlayeChessEngine::Move move, bool white) {
-					if (this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr || this->board[move.get_start_coords()[0]][move.get_start_coords()[1]]->is_white != white)
+					if (this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr)
 						return false;
+                    if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]]->is_white != white) 
+                        return false;
 					if (move.am_in(this->get_moves(move.get_start_coords()[0], move.get_start_coords()[1]))) {
 						this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_end_coords()[0], move.get_end_coords()[1]);
 						this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]->update_coords(move.get_end_coords()[0], move.get_end_coords()[1]);
@@ -936,7 +941,7 @@ namespace PlayeChessEngine {
 			* @brief The board
 			*
 			*/
-			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("r3k2r/8/8/8/8/8/8/R3K2R");
+			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("5k4/8/8/8/8/8/8/5K4");
 			// Checkmate fen : 7k/Q7/6K1/8/8/8/8/8
 			// Stalemate fen : 7k/8/8/8/8/8/8/R5RK
 			// Castling fen : r3k2r/8/8/8/8/8/8/R3K2R
@@ -994,13 +999,10 @@ namespace PlayeChessEngine {
 							return false;
 						}
 					}
-					while (move.length() != 4) {
-						std::cout << "Invalid move" << std::endl;
-						std::cin >> move;
-					}
-					std::array<int, 2> start_coords = {{move[1] - '1', move[0] - 'a'}};
-					std::array<int, 2> end_coords = {{move[3] - '1', move[2] - 'a'}};
-					Move move_obj = Move(start_coords[0], start_coords[1], end_coords[0], end_coords[1]);
+                    /*for(auto move : this->board.get_moves(move[1] - '1', move[0] - 'a')) {
+                        std::cout << move.show() << std::endl;
+                    }*/
+					Move move_obj = Move(move[1] - '1', move[0] - 'a', move[3] - '1', move[2] - 'a');
 					valid = this->board.move(move_obj, white);
 					if (valid)
 						this->moves.push_back(move_obj);
