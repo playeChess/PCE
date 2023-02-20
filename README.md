@@ -1,6 +1,6 @@
 # PCE
 
-**PCE** (Play eChess Engine) is an online chess engine designed for [playechess.com](playechsss.com)
+**PCE** (Play eChess Engine) is an online chess engine designed for [playechess.com](http://playechess.com)
 
 ## To Do
 
