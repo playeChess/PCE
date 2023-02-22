@@ -941,7 +941,7 @@ namespace PlayeChessEngine {
 			* @brief The board
 			*
 			*/
-			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("r3k2r/8/8/8/8/8/8/R3K2R");
 			// Checkmate fen : 7k/Q7/6K1/8/8/8/8/8
 			// Stalemate fen : 7k/8/8/8/8/8/8/R5RK
 			// Castling fen : r3k2r/8/8/8/8/8/8/R3K2R
@@ -949,7 +949,7 @@ namespace PlayeChessEngine {
 			// King fen : 5k4/8/8/8/8/8/8/5K4
 
 			void clear_screen() {
-				#ifdef WINDOWS
+				#ifdef _WIN32
 					std::system("cls");
 				#else
 					std::system("clear");
@@ -976,11 +976,14 @@ namespace PlayeChessEngine {
 					std::cout << move.show() << std::endl;
 				}
 				std::string move;
+				for(auto i : this->board.get_all_landing_moves(this->board.get_board(), !white)){
+					std::cout << i[0] << " - " << i[1] << std::endl;
+				}
 				if (white)
 					std::cout << "White to play" << std::endl;
 				else
 					std::cout << "Black to play" << std::endl;
-				this->board.print_board();
+				this->board.print_board(this->board.get_all_landing_moves(this->board.get_board(), !white));
 				bool valid = false;
 				while (!valid) {
 					do {
@@ -1027,9 +1030,9 @@ namespace PlayeChessEngine {
 						this->clear_screen();
 						this->board.print_board();
 						if (white)
-						std::cout << "White wins (checkmate)" << std::endl;
+							std::cout << "White wins (checkmate)" << std::endl;
 						else
-						std::cout << "Black wins (checkmate)" << std::endl;
+							std::cout << "Black wins (checkmate)" << std::endl;
 						break;
 					} else if (this->board.status(!white) == 2) {
 						this->clear_screen();
