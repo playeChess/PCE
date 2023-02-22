@@ -941,11 +941,12 @@ namespace PlayeChessEngine {
 			* @brief The board
 			*
 			*/
-			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("5k4/8/8/8/8/8/8/5K4");
+			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 			// Checkmate fen : 7k/Q7/6K1/8/8/8/8/8
 			// Stalemate fen : 7k/8/8/8/8/8/8/R5RK
 			// Castling fen : r3k2r/8/8/8/8/8/8/R3K2R
 			// En passant fen : 7k/7p/6P1/8/8/8/8/7K
+			// King fen : 5k4/8/8/8/8/8/8/5K4
 
 			void clear_screen() {
 				#ifdef WINDOWS
