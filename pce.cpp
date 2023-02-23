@@ -154,6 +154,8 @@ namespace PlayeChessEngine {
 						this->coords[1] = y;
 					}
 
+					virtual ~Piece() {}
+
 					/**
 					 * @brief Validates the move of the piece (abstract)
 					 *
@@ -514,7 +516,7 @@ namespace PlayeChessEngine {
 						int x_diff = x_final - this->coords[0];
 						int y_diff = y_final - this->coords[1];
 						if (abs(x_diff) <= 1 && abs(y_diff) <= 1 && (x_diff != 0 || y_diff != 0)) {
-                            std::cout << "King validation " << this->coords[0] << " " << this->coords[1] << " - " << x_final << " " << y_final << std::endl;
+                            // std::cout << "King validation " << this->coords[0] << " " << this->coords[1] << " - " << x_final << " " << y_final << std::endl;
 							return validate_validation(board, x_final, y_final);
                         }
 						return false;
@@ -781,8 +783,7 @@ namespace PlayeChessEngine {
 				 * (std::array<std::array<pieces::Piece*, 8>, 8>)
 				 */
 				std::array<std::array<pieces::Piece *, 8>, 8> transfer(std::array<std::array<pieces::Piece *, 8>, 8> board, int start_x, int start_y, int end_x, int end_y) {
-					board[end_x][end_y] = board[start_x][start_y];
-					board[start_x][start_y] = nullptr;
+					std::swap(board[start_x][start_y], board[end_x][end_y]);
 					return board;
 				}
 
@@ -875,40 +876,25 @@ namespace PlayeChessEngine {
 					return this->can_castle_row(7, kingside);
 				}
 
-				void castle(bool is_white, bool kingside) {
-					if (is_white) {
-						if (kingside) {
-							this->board[0][6] = this->board[0][4];
-							this->board[0][5] = this->board[0][7];
-							this->board[0][4] = nullptr;
-							this->board[0][7] = nullptr;
-							this->board[0][6]->update_coords(0, 6);
-							this->board[0][5]->update_coords(0, 5);
-						} else {
-							this->board[0][2] = this->board[0][4];
-							this->board[0][3] = this->board[0][0];
-							this->board[0][4] = nullptr;
-							this->board[0][0] = nullptr;
-							this->board[0][2]->update_coords(0, 2);
-							this->board[0][3]->update_coords(0, 3);
-						}
+				void castle_row(int row, bool kingside) {
+					if (kingside) {
+						std::swap(this->board[row][4], this->board[row][6]);
+						std::swap(this->board[0][7], this->board[row][5]);
+						this->board[row][6]->update_coords(row, 6);
+						this->board[row][5]->update_coords(row, 5);
 					} else {
-						if (kingside) {
-							this->board[7][6] = this->board[7][4];
-							this->board[7][5] = this->board[7][7];
-							this->board[7][4] = nullptr;
-							this->board[7][7] = nullptr;
-							this->board[7][6]->update_coords(7, 6);
-							this->board[7][5]->update_coords(7, 5);
-						} else {
-							this->board[7][2] = this->board[7][4];
-							this->board[7][3] = this->board[7][0];
-							this->board[7][4] = nullptr;
-							this->board[7][0] = nullptr;
-							this->board[7][2]->update_coords(7, 2);
-							this->board[7][3]->update_coords(7, 3);
-						}
+						std::swap(this->board[row][4], this->board[row][2]);
+						std::swap(this->board[0][0], this->board[row][3]);
+						this->board[row][2]->update_coords(row, 2);
+						this->board[row][3]->update_coords(row, 3);
 					}
+				}
+
+				void castle(bool is_white, bool kingside) {
+					if (is_white)
+						this->castle_row(0, kingside);
+					else
+						this->castle_row(7, kingside);
 				}
 		};
 	} // namespace board
