@@ -30,5 +30,5 @@
   - [x] Stalemate
   - [ ] Fifty moves
   - [ ] Threefold repetition
-  - [ ] Insufficient material
+  - [x] Insufficient material
 - [ ] No bugs found
