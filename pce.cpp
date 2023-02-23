@@ -739,6 +739,13 @@ namespace PlayeChessEngine {
 					return moves;
 				}
 
+				/**
+				 * @brief Checks if a vector of int is in a vector of vector of int
+				 * 
+				 * @param vec The vector of vector of int
+				 * @param val The vector of int
+				 * @return Wether the vector of int is in the vector of vector of int (bool)
+				 */
 				bool in(std::vector<std::vector<int>> vec, std::vector<int> val) {
 					for (auto v : vec) {
 						if (v == val)
@@ -841,6 +848,13 @@ namespace PlayeChessEngine {
 					return 0;
 				}
 
+				/**
+				 * @brief Checks if a player can castle
+				 * 
+				 * @param row The row of the king (0 or 7)
+				 * @param kingside Wether to castle kingside or queenside
+				 * @return If the player can castle (bool)
+				 */
 				bool can_castle_row(int row, bool kingside) {
 					if (kingside) {
 						if (this->board[row][4] != nullptr && this->board[row][7] != nullptr && this->board[row][5] == nullptr && this->board[row][6] == nullptr) {
@@ -870,12 +884,25 @@ namespace PlayeChessEngine {
 					return false;
 				}
 
+				/**
+				 * @brief Checks if a player can castle
+				 * 
+				 * @param white If the player is white
+				 * @param kingside Wether to castle kingside or queenside
+				 * @return If the player can castle (bool)
+				 */
 				bool can_castle(bool white, bool kingside) {
 					if (white)
 						return this->can_castle_row(0, kingside);
 					return this->can_castle_row(7, kingside);
 				}
 
+				/**
+				 * @brief Castles a player
+				 * 
+				 * @param row The row of the king (0 or 7)
+				 * @param kingside Wether to castle kingside or queenside
+				 */
 				void castle_row(int row, bool kingside) {
 					if (kingside) {
 						std::swap(this->board[row][4], this->board[row][6]);
@@ -890,6 +917,12 @@ namespace PlayeChessEngine {
 					}
 				}
 
+				/**
+				 * @brief Castles a player
+				 * 
+				 * @param white If the player is white
+				 * @param kingside Wether to castle kingside or queenside
+				 */
 				void castle(bool is_white, bool kingside) {
 					if (is_white)
 						this->castle_row(0, kingside);
