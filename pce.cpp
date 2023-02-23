@@ -791,6 +791,7 @@ namespace PlayeChessEngine {
 				 */
 				std::array<std::array<pieces::Piece *, 8>, 8> transfer(std::array<std::array<pieces::Piece *, 8>, 8> board, int start_x, int start_y, int end_x, int end_y) {
 					std::swap(board[start_x][start_y], board[end_x][end_y]);
+					board[start_x][start_y] = nullptr;
 					return board;
 				}
 
@@ -826,6 +827,7 @@ namespace PlayeChessEngine {
 					if (move.am_in(this->get_moves(move.get_start_coords()[0], move.get_start_coords()[1]))) {
 						this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_end_coords()[0], move.get_end_coords()[1]);
 						this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]->update_coords(move.get_end_coords()[0], move.get_end_coords()[1]);
+						delete this->board[move.get_start_coords()[0]][move.get_start_coords()[1]];
 						return true;
 					}
 					return false;
@@ -846,6 +848,42 @@ namespace PlayeChessEngine {
 							return 2;
 					}
 					return 0;
+				}
+
+				/**
+				 * @brief CHecks if there is insufficient material to checkmate
+				 * 
+				 * @return If there is insufficient material (bool)
+				 */
+				bool insufficient_material() {
+					int num_knights = 0;
+					int num_bishops = 0;
+					for (auto row : this->board) {
+						for (auto piece : row) {
+							if (piece == nullptr)
+								continue;
+							switch (piece->get_type()) {
+								case pieces::piece_type::p:
+									return false;
+								case pieces::piece_type::n:
+									num_knights++;
+									break;
+								case pieces::piece_type::b:
+									num_bishops++;
+									break;
+								case pieces::piece_type::r:
+									return false;
+								case pieces::piece_type::q:
+									return false;
+									break;
+								default:
+									break;
+							}
+						}
+					}
+					if (num_knights + num_bishops < 2)
+						return true;
+					return false;
 				}
 
 				/**
@@ -935,7 +973,6 @@ namespace PlayeChessEngine {
 	// TODO Draw conditions
 	// check_fifty_move_rule()
 	// check_threefold_repetition()
-	// check_insufficient_material()
 
 	// TODO Promotion
 	// check_promotion()
@@ -960,12 +997,13 @@ namespace PlayeChessEngine {
 			* @brief The board
 			*
 			*/
-			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("r3k2r/8/8/8/8/8/8/R3K2R");
+			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("7k/8/8/8/8/6r/7B/7K");
 			// Checkmate fen : 7k/Q7/6K1/8/8/8/8/8
 			// Stalemate fen : 7k/8/8/8/8/8/8/R5RK
 			// Castling fen : r3k2r/8/8/8/8/8/8/R3K2R
 			// En passant fen : 7k/7p/6P1/8/8/8/8/7K
 			// King fen : 5k4/8/8/8/8/8/8/5K4
+			// Insufficient material fen : 7k/8/8/8/8/6r/7B/7K
 
 			void clear_screen() {
 				#ifdef _WIN32
@@ -1002,7 +1040,7 @@ namespace PlayeChessEngine {
 					std::cout << "White to play" << std::endl;
 				else
 					std::cout << "Black to play" << std::endl;
-				this->board.print_board(this->board.get_all_landing_moves(this->board.get_board(), !white));
+				this->board.print_board(this->board.get_all_landing_moves(this->board.get_board(), white));
 				bool valid = false;
 				while (!valid) {
 					do {
@@ -1057,6 +1095,11 @@ namespace PlayeChessEngine {
 						this->clear_screen();
 						this->board.print_board();
 						std::cout << "Draw (stalemate)" << std::endl;
+						break;
+					} else if(this->board.insufficient_material() && this->board.status(!white) == 0) {
+						this->clear_screen();
+						this->board.print_board();
+						std::cout << "Draw (insufficient material)" << std::endl;
 						break;
 					}
 					move_count++;
