@@ -882,15 +882,15 @@ namespace PlayeChessEngine {
 							this->board[0][5] = this->board[0][7];
 							this->board[0][4] = nullptr;
 							this->board[0][7] = nullptr;
-							this->board[0][6]->update_coords(6, 0);
-							this->board[0][5]->update_coords(5, 0);
+							this->board[0][6]->update_coords(0, 6);
+							this->board[0][5]->update_coords(0, 5);
 						} else {
 							this->board[0][2] = this->board[0][4];
 							this->board[0][3] = this->board[0][0];
 							this->board[0][4] = nullptr;
 							this->board[0][0] = nullptr;
-							this->board[0][2]->update_coords(2, 0);
-							this->board[0][3]->update_coords(3, 0);
+							this->board[0][2]->update_coords(0, 2);
+							this->board[0][3]->update_coords(0, 3);
 						}
 					} else {
 						if (kingside) {
@@ -898,15 +898,15 @@ namespace PlayeChessEngine {
 							this->board[7][5] = this->board[7][7];
 							this->board[7][4] = nullptr;
 							this->board[7][7] = nullptr;
-							this->board[7][6]->update_coords(6, 7);
-							this->board[7][5]->update_coords(5, 7);
+							this->board[7][6]->update_coords(7, 6);
+							this->board[7][5]->update_coords(7, 5);
 						} else {
 							this->board[7][2] = this->board[7][4];
 							this->board[7][3] = this->board[7][0];
 							this->board[7][4] = nullptr;
 							this->board[7][0] = nullptr;
-							this->board[7][2]->update_coords(2, 7);
-							this->board[7][3]->update_coords(3, 7);
+							this->board[7][2]->update_coords(7, 2);
+							this->board[7][3]->update_coords(7, 3);
 						}
 					}
 				}
