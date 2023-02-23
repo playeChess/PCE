@@ -23,80 +23,126 @@ namespace PlayeChessEngine {
  */
 	class Move {
 		private:
-		/**
-		 * @brief The x coordinate of the start square
-		 */
-		int start_square_x;
-		/**
-		 * @brief The y coordinate of the start square
-		 */
-		int start_square_y;
-		/**
-		 * @brief The x coordinate of the end square
-		 */
-		int end_square_x;
-		/**
-		 * @brief The y coordinate of the end square
-		 */
-		int end_square_y;
+			/**
+			 * @brief The x coordinate of the start square
+			 */
+			int start_square_x;
+			/**
+			 * @brief The y coordinate of the start square
+			 */
+			int start_square_y;
+			/**
+			 * @brief The x coordinate of the end square
+			 */
+			int end_square_x;
+			/**
+			 * @brief The y coordinate of the end square
+			 */
+			int end_square_y;
+
+			/**
+			 * @brief If the move is a capture
+			 */
+			bool is_capture = false;
+
+			/**
+			 * @brief If the move is valid
+			 */
+			bool is_valid = false;
 
 		public:
-		/**
-		 * @brief Construct a new Move object
-		 *
-		 * @param start_square_x The x coordinate of the start square
-		 * @param start_square_y The y coordinate of the start square
-		 * @param end_square_x The x coordinate of the end square
-		 * @param end_square_y The y coordinate of the end square
-		 */
-		Move(int start_square_x, int start_square_y, int end_square_x,
-			int end_square_y) {
-			this->start_square_x = start_square_x;
-			this->start_square_y = start_square_y;
-			this->end_square_x = end_square_x;
-			this->end_square_y = end_square_y;
-		};
+			/**
+			 * @brief Construct a new Move object
+			 *
+			 * @param start_square_x The x coordinate of the start square
+			 * @param start_square_y The y coordinate of the start square
+			 * @param end_square_x The x coordinate of the end square
+			 * @param end_square_y The y coordinate of the end square
+			 */
+			Move(int start_square_x, int start_square_y, int end_square_x,
+				int end_square_y) {
+				this->start_square_x = start_square_x;
+				this->start_square_y = start_square_y;
+				this->end_square_x = end_square_x;
+				this->end_square_y = end_square_y;
+			};
 
-		/**
-		 * @brief Shows the move in a readable format
-		 *
-		 * @return Formatted move (std::string)
-		 */
-		std::string show() {
-			std::string files = "abcdefgh";
-			return std::string(1, files[start_square_y]) + std::to_string(start_square_x + 1) + " -> " + std::string(1, files[end_square_y]) + std::to_string(end_square_x + 1);
-		}
-
-		/**
-		 * @brief Get the start coords
-		 *
-		 * @return The start coords (std::vector<int>)
-		 */
-		std::vector<int> get_start_coords() {
-			return {this->start_square_x, this->start_square_y};
-		}
-		/**
-		 * @brief Get the end coords
-		 *
-		 * @return The end coords (std::vector<int>)
-		 */
-		std::vector<int> get_end_coords() {
-			return {this->end_square_x, this->end_square_y};
-		}
-
-		/**
-		 * @brief Checks if the move is in a vector of moves
-		 *
-		 * @param moves The vector of moves
-		 * @return True if the move is in the vector, false if not (bool)
-		 */
-		bool am_in(std::vector<Move> moves) {
-			for (int i = 0; i < moves.size(); i++) {
-				if (moves[i].get_end_coords()[0] == this->get_end_coords()[0] && moves[i].get_end_coords()[1] == this->get_end_coords()[1])
-					return true;
+			/**
+			 * @brief Shows the move in a readable format
+			 *
+			 * @return Formatted move (std::string)
+			 */
+			std::string show() {
+				std::string files = "abcdefgh";
+				return std::string(1, files[start_square_y]) + std::to_string(start_square_x + 1) + " -> " + std::string(1, files[end_square_y]) + std::to_string(end_square_x + 1);
 			}
-			return false;
-		}
+
+			/**
+			 * @brief Get the start coords
+			 *
+			 * @return The start coords (std::vector<int>)
+			 */
+			std::vector<int> get_start_coords() {
+				return {this->start_square_x, this->start_square_y};
+			}
+			/**
+			 * @brief Get the end coords
+			 *
+			 * @return The end coords (std::vector<int>)
+			 */
+			std::vector<int> get_end_coords() {
+				return {this->end_square_x, this->end_square_y};
+			}
+
+			/**
+			 * @brief Set if the move is a capture
+			 *
+			 * @param is_capture If the move is a capture (bool)
+			 */
+			void set_capture(bool is_capture) {
+				this->is_capture = is_capture;
+			}
+
+			/**
+			 * @brief Get if the move is a capture
+			 * 
+			 * @return If the move is a capture
+			 */
+			bool get_capture() {
+				return this->is_capture;
+			}
+
+			/**
+			 * @brief Set if the move is valid
+			 * 
+			 * @param is_valid If the move is valid
+			 */
+			void set_valid(bool is_valid) {
+				this->is_valid = is_valid;
+			}
+
+			/**
+			 * @brief Get if the move is valid
+			 * 
+			 * @return If the move is valid
+			 */
+			bool get_valid() {
+				return this->is_valid;
+			}
+
+			/**
+			 * @brief Checks if the move is in a vector of moves
+			 *
+			 * @param moves The vector of moves
+			 * @return True if the move is in the vector, false if not (bool)
+			 */
+			bool am_in(std::vector<Move> moves) {
+				for (int i = 0; i < moves.size(); i++) {
+					if (moves[i].get_end_coords()[0] == this->get_end_coords()[0] && moves[i].get_end_coords()[1] == this->get_end_coords()[1])
+						return true;
+				}
+				return false;
+			}
 	};
 
 	/**
@@ -819,18 +865,21 @@ namespace PlayeChessEngine {
 				 * @param white If the color is white
 				 * @return If the move was played (bool)
 				 */
-				bool move(PlayeChessEngine::Move move, bool white) {
+				PlayeChessEngine::Move move(PlayeChessEngine::Move move, bool white) {
 					if (this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr)
-						return false;
-                    if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]]->is_white != white) 
-                        return false;
-					if (move.am_in(this->get_moves(move.get_start_coords()[0], move.get_start_coords()[1]))) {
+						move.set_valid(false);
+                    else if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]]->is_white != white) 
+                        move.set_valid(false);
+					else if (move.am_in(this->get_moves(move.get_start_coords()[0], move.get_start_coords()[1]))) {
+						if(this->board[move.get_end_coords()[0]][move.get_end_coords()[1]] != nullptr)
+							move.set_capture(true);
 						this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_end_coords()[0], move.get_end_coords()[1]);
 						this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]->update_coords(move.get_end_coords()[0], move.get_end_coords()[1]);
 						delete this->board[move.get_start_coords()[0]][move.get_start_coords()[1]];
-						return true;
-					}
-					return false;
+						move.set_valid(true);
+					} else
+						move.set_valid(false);
+					return move;
 				}
 
 				/**
@@ -971,7 +1020,6 @@ namespace PlayeChessEngine {
 	} // namespace board
 
 	// TODO Draw conditions
-	// check_fifty_move_rule()
 	// check_threefold_repetition()
 
 	// TODO Promotion
@@ -997,13 +1045,15 @@ namespace PlayeChessEngine {
 			* @brief The board
 			*
 			*/
-			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("7k/8/8/8/8/6r/7B/7K");
+			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 			// Checkmate fen : 7k/Q7/6K1/8/8/8/8/8
 			// Stalemate fen : 7k/8/8/8/8/8/8/R5RK
 			// Castling fen : r3k2r/8/8/8/8/8/8/R3K2R
 			// En passant fen : 7k/7p/6P1/8/8/8/8/7K
 			// King fen : 5k4/8/8/8/8/8/8/5K4
 			// Insufficient material fen : 7k/8/8/8/8/6r/7B/7K
+
+			int move_countdown = 50;
 
 			void clear_screen() {
 				#ifdef _WIN32
@@ -1064,9 +1114,11 @@ namespace PlayeChessEngine {
                         std::cout << move.show() << std::endl;
                     }*/
 					Move move_obj = Move(move[1] - '1', move[0] - 'a', move[3] - '1', move[2] - 'a');
-					valid = this->board.move(move_obj, white);
-					if (valid)
+					move_obj = this->board.move(move_obj, white);
+					if (move_obj.get_valid())
 						this->moves.push_back(move_obj);
+					if(!move_obj.get_capture())
+						this->move_countdown--;
 				}
 				return false;
 			}
@@ -1100,6 +1152,11 @@ namespace PlayeChessEngine {
 						this->clear_screen();
 						this->board.print_board();
 						std::cout << "Draw (insufficient material)" << std::endl;
+						break;
+					} else if(this->move_countdown == 0 && this->board.status(!white) == 0) {
+						this->clear_screen();
+						this->board.print_board();
+						std::cout << "Draw (50 move rule)" << std::endl;
 						break;
 					}
 					move_count++;
