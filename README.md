@@ -28,7 +28,7 @@
 - [ ] Promotion
 - [ ] Draws
   - [x] Stalemate
-  - [ ] Fifty moves
+  - [x] Fifty moves
   - [ ] Threefold repetition
   - [x] Insufficient material
-- [ ] No bugs found
+- [x] No bugs found
