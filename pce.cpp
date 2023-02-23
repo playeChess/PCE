@@ -154,6 +154,8 @@ namespace PlayeChessEngine {
 						this->coords[1] = y;
 					}
 
+					virtual ~Piece() {}
+
 					/**
 					 * @brief Validates the move of the piece (abstract)
 					 *
@@ -514,7 +516,7 @@ namespace PlayeChessEngine {
 						int x_diff = x_final - this->coords[0];
 						int y_diff = y_final - this->coords[1];
 						if (abs(x_diff) <= 1 && abs(y_diff) <= 1 && (x_diff != 0 || y_diff != 0)) {
-                            std::cout << "King validation " << this->coords[0] << " " << this->coords[1] << " - " << x_final << " " << y_final << std::endl;
+                            // std::cout << "King validation " << this->coords[0] << " " << this->coords[1] << " - " << x_final << " " << y_final << std::endl;
 							return validate_validation(board, x_final, y_final);
                         }
 						return false;
@@ -737,6 +739,13 @@ namespace PlayeChessEngine {
 					return moves;
 				}
 
+				/**
+				 * @brief Checks if a vector of int is in a vector of vector of int
+				 * 
+				 * @param vec The vector of vector of int
+				 * @param val The vector of int
+				 * @return Wether the vector of int is in the vector of vector of int (bool)
+				 */
 				bool in(std::vector<std::vector<int>> vec, std::vector<int> val) {
 					for (auto v : vec) {
 						if (v == val)
@@ -781,7 +790,7 @@ namespace PlayeChessEngine {
 				 * (std::array<std::array<pieces::Piece*, 8>, 8>)
 				 */
 				std::array<std::array<pieces::Piece *, 8>, 8> transfer(std::array<std::array<pieces::Piece *, 8>, 8> board, int start_x, int start_y, int end_x, int end_y) {
-					board[end_x][end_y] = board[start_x][start_y];
+					std::swap(board[start_x][start_y], board[end_x][end_y]);
 					board[start_x][start_y] = nullptr;
 					return board;
 				}
@@ -818,6 +827,7 @@ namespace PlayeChessEngine {
 					if (move.am_in(this->get_moves(move.get_start_coords()[0], move.get_start_coords()[1]))) {
 						this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_end_coords()[0], move.get_end_coords()[1]);
 						this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]->update_coords(move.get_end_coords()[0], move.get_end_coords()[1]);
+						delete this->board[move.get_start_coords()[0]][move.get_start_coords()[1]];
 						return true;
 					}
 					return false;
@@ -840,6 +850,49 @@ namespace PlayeChessEngine {
 					return 0;
 				}
 
+				/**
+				 * @brief CHecks if there is insufficient material to checkmate
+				 * 
+				 * @return If there is insufficient material (bool)
+				 */
+				bool insufficient_material() {
+					int num_knights = 0;
+					int num_bishops = 0;
+					for (auto row : this->board) {
+						for (auto piece : row) {
+							if (piece == nullptr)
+								continue;
+							switch (piece->get_type()) {
+								case pieces::piece_type::p:
+									return false;
+								case pieces::piece_type::n:
+									num_knights++;
+									break;
+								case pieces::piece_type::b:
+									num_bishops++;
+									break;
+								case pieces::piece_type::r:
+									return false;
+								case pieces::piece_type::q:
+									return false;
+									break;
+								default:
+									break;
+							}
+						}
+					}
+					if (num_knights + num_bishops < 2)
+						return true;
+					return false;
+				}
+
+				/**
+				 * @brief Checks if a player can castle
+				 * 
+				 * @param row The row of the king (0 or 7)
+				 * @param kingside Wether to castle kingside or queenside
+				 * @return If the player can castle (bool)
+				 */
 				bool can_castle_row(int row, bool kingside) {
 					if (kingside) {
 						if (this->board[row][4] != nullptr && this->board[row][7] != nullptr && this->board[row][5] == nullptr && this->board[row][6] == nullptr) {
@@ -869,46 +922,50 @@ namespace PlayeChessEngine {
 					return false;
 				}
 
+				/**
+				 * @brief Checks if a player can castle
+				 * 
+				 * @param white If the player is white
+				 * @param kingside Wether to castle kingside or queenside
+				 * @return If the player can castle (bool)
+				 */
 				bool can_castle(bool white, bool kingside) {
 					if (white)
 						return this->can_castle_row(0, kingside);
 					return this->can_castle_row(7, kingside);
 				}
 
-				void castle(bool is_white, bool kingside) {
-					if (is_white) {
-						if (kingside) {
-							this->board[0][6] = this->board[0][4];
-							this->board[0][5] = this->board[0][7];
-							this->board[0][4] = nullptr;
-							this->board[0][7] = nullptr;
-							this->board[0][6]->update_coords(6, 0);
-							this->board[0][5]->update_coords(5, 0);
-						} else {
-							this->board[0][2] = this->board[0][4];
-							this->board[0][3] = this->board[0][0];
-							this->board[0][4] = nullptr;
-							this->board[0][0] = nullptr;
-							this->board[0][2]->update_coords(2, 0);
-							this->board[0][3]->update_coords(3, 0);
-						}
+				/**
+				 * @brief Castles a player
+				 * 
+				 * @param row The row of the king (0 or 7)
+				 * @param kingside Wether to castle kingside or queenside
+				 */
+				void castle_row(int row, bool kingside) {
+					if (kingside) {
+						std::swap(this->board[row][4], this->board[row][6]);
+						std::swap(this->board[0][7], this->board[row][5]);
+						this->board[row][6]->update_coords(row, 6);
+						this->board[row][5]->update_coords(row, 5);
 					} else {
-						if (kingside) {
-							this->board[7][6] = this->board[7][4];
-							this->board[7][5] = this->board[7][7];
-							this->board[7][4] = nullptr;
-							this->board[7][7] = nullptr;
-							this->board[7][6]->update_coords(6, 7);
-							this->board[7][5]->update_coords(5, 7);
-						} else {
-							this->board[7][2] = this->board[7][4];
-							this->board[7][3] = this->board[7][0];
-							this->board[7][4] = nullptr;
-							this->board[7][0] = nullptr;
-							this->board[7][2]->update_coords(2, 7);
-							this->board[7][3]->update_coords(3, 7);
-						}
+						std::swap(this->board[row][4], this->board[row][2]);
+						std::swap(this->board[0][0], this->board[row][3]);
+						this->board[row][2]->update_coords(row, 2);
+						this->board[row][3]->update_coords(row, 3);
 					}
+				}
+
+				/**
+				 * @brief Castles a player
+				 * 
+				 * @param white If the player is white
+				 * @param kingside Wether to castle kingside or queenside
+				 */
+				void castle(bool is_white, bool kingside) {
+					if (is_white)
+						this->castle_row(0, kingside);
+					else
+						this->castle_row(7, kingside);
 				}
 		};
 	} // namespace board
@@ -916,7 +973,6 @@ namespace PlayeChessEngine {
 	// TODO Draw conditions
 	// check_fifty_move_rule()
 	// check_threefold_repetition()
-	// check_insufficient_material()
 
 	// TODO Promotion
 	// check_promotion()
@@ -941,15 +997,16 @@ namespace PlayeChessEngine {
 			* @brief The board
 			*
 			*/
-			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("7k/8/8/8/8/6r/7B/7K");
 			// Checkmate fen : 7k/Q7/6K1/8/8/8/8/8
 			// Stalemate fen : 7k/8/8/8/8/8/8/R5RK
 			// Castling fen : r3k2r/8/8/8/8/8/8/R3K2R
 			// En passant fen : 7k/7p/6P1/8/8/8/8/7K
 			// King fen : 5k4/8/8/8/8/8/8/5K4
+			// Insufficient material fen : 7k/8/8/8/8/6r/7B/7K
 
 			void clear_screen() {
-				#ifdef WINDOWS
+				#ifdef _WIN32
 					std::system("cls");
 				#else
 					std::system("clear");
@@ -976,11 +1033,14 @@ namespace PlayeChessEngine {
 					std::cout << move.show() << std::endl;
 				}
 				std::string move;
+				for(auto i : this->board.get_all_landing_moves(this->board.get_board(), !white)){
+					std::cout << i[0] << " - " << i[1] << std::endl;
+				}
 				if (white)
 					std::cout << "White to play" << std::endl;
 				else
 					std::cout << "Black to play" << std::endl;
-				this->board.print_board();
+				this->board.print_board(this->board.get_all_landing_moves(this->board.get_board(), white));
 				bool valid = false;
 				while (!valid) {
 					do {
@@ -1027,14 +1087,19 @@ namespace PlayeChessEngine {
 						this->clear_screen();
 						this->board.print_board();
 						if (white)
-						std::cout << "White wins (checkmate)" << std::endl;
+							std::cout << "White wins (checkmate)" << std::endl;
 						else
-						std::cout << "Black wins (checkmate)" << std::endl;
+							std::cout << "Black wins (checkmate)" << std::endl;
 						break;
 					} else if (this->board.status(!white) == 2) {
 						this->clear_screen();
 						this->board.print_board();
 						std::cout << "Draw (stalemate)" << std::endl;
+						break;
+					} else if(this->board.insufficient_material() && this->board.status(!white) == 0) {
+						this->clear_screen();
+						this->board.print_board();
+						std::cout << "Draw (insufficient material)" << std::endl;
 						break;
 					}
 					move_count++;
