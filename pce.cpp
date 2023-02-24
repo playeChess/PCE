@@ -604,6 +604,44 @@ namespace PlayeChessEngine {
 				};
 
 				/**
+				 * @brief Checks if the board is equal to another board
+				 * 
+				 * @param other The other board
+				 * @return Whether the boards are equal (bool)
+				 */
+				bool operator==(Board &other) {
+					for (int i = 0; i < 8; i++) {
+						for (int j = 0; j < 8; j++) {
+							if (this->board[i][j] == nullptr && other.board[i][j] == nullptr) {
+								continue;
+							} else if (this->board[i][j] == nullptr || other.board[i][j] == nullptr) {
+								return false;
+							} else if (this->board[i][j]->get_type() != other.board[i][j]->get_type()) {
+								return false;
+							} else if (this->board[i][j]->is_white != other.board[i][j]->is_white) {
+								return false;
+							}
+						}
+					}
+					if(this->can_castle(true, true) != other.can_castle(true, true) || this->can_castle(true, false) != other.can_castle(true, false) || this->can_castle(false, true) != other.can_castle(false, true) || this->can_castle(false, false) != other.can_castle(false, false))
+						return false;
+					// TODO Add `en passant` functionality
+					/*if(this->get_en_passant() != other.get_en_passant())
+						return false;*/
+					return true;
+				}
+				
+				/**
+				 * @brief Checks if the board is not equal to another board
+				 * 
+				 * @param other The other board
+				 * @return Whether the boards are not equal (bool)
+				 */
+				bool operator!=(Board &other) {
+					return !(*this == other);
+				}
+
+				/**
 				 * @brief Reverses the fen string (for loading the board)
 				 *
 				 * @param fen The fen string
@@ -1070,16 +1108,23 @@ namespace PlayeChessEngine {
 			*/
 			std::vector<Move> moves;
 			/**
+			 * @brief The boards played (by each move)
+			 * 
+			 */
+			std::vector<board::Board> boards;
+			/**
 			* @brief The board
 			*
 			*/
-			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-			// Checkmate fen : 7k/Q7/6K1/8/8/8/8/8
-			// Stalemate fen : 7k/8/8/8/8/8/8/R5RK
-			// Castling fen : r3k2r/8/8/8/8/8/8/R3K2R
-			// En passant fen : 7k/7p/6P1/8/8/8/8/7K
-			// Insufficient material fen : 7k/8/8/8/8/6r/7B/7K
-			// Promotion fen : 7k/P7/8/8/8/8/8/7K
+			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("r6k/8/8/8/8/8/8/R6K");
+			// Base fen 					: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+			// Checkmate fen 				: 7k/Q7/6K1/8/8/8/8/8
+			// Stalemate fen 				: 7k/8/8/8/8/8/8/R5RK
+			// Castling fen 				: r3k2r/8/8/8/8/8/8/R3K2R
+			// En passant fen 				: 7k/7p/6P1/8/8/8/8/7K
+			// Insufficient material fen 	: 7k/8/8/8/8/6r/7B/7K
+			// Promotion fen 				: 7k/P7/8/8/8/8/8/7K
+			// Repetition fen 				: r6k/8/8/8/8/8/8/R6K
 
 			int move_countdown = 50;
 
@@ -1091,12 +1136,14 @@ namespace PlayeChessEngine {
 				#endif
 			}
 
-		public:
-			/**
-			* @brief Construct a new PCE object
-			*
-			*/
-			PCE() {}
+			bool check_threefold_repetition() {
+				int count = 0;
+				for (auto board : this->boards) {
+					if (board == this->board)
+						count++;
+				}
+				return count >= 3;
+			}
 
 			/**
 			* @brief Plays a move
@@ -1145,8 +1192,10 @@ namespace PlayeChessEngine {
 
 					valid = move_obj.get_valid();
 
-					if (valid)
+					if (valid) {
 						this->moves.push_back(move_obj);
+						this->boards.push_back(this->board);
+					}
 					
 					if(!move_obj.get_capture() || type == board::pieces::piece_type::p)
 						this->move_countdown = 50;
@@ -1171,6 +1220,13 @@ namespace PlayeChessEngine {
 				}
 				return false;
 			}
+
+		public:
+			/**
+			* @brief Construct a new PCE object
+			*
+			*/
+			PCE() {}
 
 			/**
 			* @brief Starts the game
@@ -1206,6 +1262,11 @@ namespace PlayeChessEngine {
 						this->clear_screen();
 						this->board.print_board();
 						std::cout << "Draw (50 move rule)" << std::endl;
+						break;
+					} else if(this->check_threefold_repetition() && this->board.status(!white) == 0) {
+						this->clear_screen();
+						this->board.print_board();
+						std::cout << "Draw (threefold repetition)" << std::endl;
 						break;
 					}
 					move_count++;
