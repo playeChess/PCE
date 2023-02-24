@@ -1137,11 +1137,13 @@ namespace PlayeChessEngine {
 
 			bool check_threefold_repetition(bool white) {
 				int count = 0;
-				for (auto board : this->boards) {
-					if ((board.first == this->board) && (board.second == white))
+				for (int i = 0; i < this->boards.size(); i++) {
+					//std::cout << "Move " << i << std::endl;
+					if ((this->boards[i].first == this->board) && (this->boards[i].second == white))
 						count++;
+					//std::cin.get();
 				}
-				return count == 3;
+				return count >= 3;
 			}
 
 			/**
@@ -1234,7 +1236,7 @@ namespace PlayeChessEngine {
 			void main() {
 				int move_count = 0;
 				bool break_loop = false;
-				this->boards.push_back(std::make_pair(this->board, true));
+				this->boards.push_back(std::make_pair(this->board, move_count % 2 != 0));
 				while (true) {
 					bool white = move_count % 2 == 0;
 					break_loop = this->move(white);
@@ -1253,17 +1255,17 @@ namespace PlayeChessEngine {
 						this->board.print_board();
 						std::cout << "Draw (stalemate)" << std::endl;
 						break;
-					} else if(this->board.insufficient_material() && this->board.status(!white) == 0) {
+					} else if(this->board.insufficient_material()) {
 						this->clear_screen();
 						this->board.print_board();
 						std::cout << "Draw (insufficient material)" << std::endl;
 						break;
-					} else if(this->move_countdown == 0 && this->board.status(!white) == 0) {
+					} else if(this->move_countdown == 0) {
 						this->clear_screen();
 						this->board.print_board();
 						std::cout << "Draw (50 move rule)" << std::endl;
 						break;
-					} else if(this->check_threefold_repetition(white) && this->board.status(!white) == 0) {
+					} else if(this->check_threefold_repetition(white)) {
 						this->clear_screen();
 						this->board.print_board();
 						std::cout << "Draw (threefold repetition)" << std::endl;
