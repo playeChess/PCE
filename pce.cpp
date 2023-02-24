@@ -614,13 +614,12 @@ namespace PlayeChessEngine {
 						for (int j = 0; j < 8; j++) {
 							if (this->board[i][j] == nullptr && other.board[i][j] == nullptr) {
 								continue;
-							} else if (this->board[i][j] == nullptr || other.board[i][j] == nullptr) {
-								return false;
-							} else if (this->board[i][j]->get_type() != other.board[i][j]->get_type()) {
-								return false;
-							} else if (this->board[i][j]->is_white != other.board[i][j]->is_white) {
+							} if (this->board[i][j] == nullptr || other.board[i][j] == nullptr) {
 								return false;
 							}
+							if(this->board[i][j]->get_type() == other.board[i][j]->get_type() && this->board[i][j]->is_white == other.board[i][j]->is_white)
+								continue;
+							return false;
 						}
 					}
 					if(this->can_castle(true, true) != other.can_castle(true, true) || this->can_castle(true, false) != other.can_castle(true, false) || this->can_castle(false, true) != other.can_castle(false, true) || this->can_castle(false, false) != other.can_castle(false, false))
@@ -1111,7 +1110,7 @@ namespace PlayeChessEngine {
 			 * @brief The boards played (by each move)
 			 * 
 			 */
-			std::vector<board::Board> boards;
+			std::vector<std::pair<board::Board, bool>> boards;
 			/**
 			* @brief The board
 			*
@@ -1136,13 +1135,13 @@ namespace PlayeChessEngine {
 				#endif
 			}
 
-			bool check_threefold_repetition() {
+			bool check_threefold_repetition(bool white) {
 				int count = 0;
 				for (auto board : this->boards) {
-					if (board == this->board)
+					if ((board.first == this->board) && (board.second == white))
 						count++;
 				}
-				return count >= 3;
+				return count == 3;
 			}
 
 			/**
@@ -1194,7 +1193,7 @@ namespace PlayeChessEngine {
 
 					if (valid) {
 						this->moves.push_back(move_obj);
-						this->boards.push_back(this->board);
+						this->boards.push_back(std::make_pair(this->board, white));
 					}
 					
 					if(!move_obj.get_capture() || type == board::pieces::piece_type::p)
@@ -1235,6 +1234,7 @@ namespace PlayeChessEngine {
 			void main() {
 				int move_count = 0;
 				bool break_loop = false;
+				this->boards.push_back(std::make_pair(this->board, true));
 				while (true) {
 					bool white = move_count % 2 == 0;
 					break_loop = this->move(white);
@@ -1263,7 +1263,7 @@ namespace PlayeChessEngine {
 						this->board.print_board();
 						std::cout << "Draw (50 move rule)" << std::endl;
 						break;
-					} else if(this->check_threefold_repetition() && this->board.status(!white) == 0) {
+					} else if(this->check_threefold_repetition(white) && this->board.status(!white) == 0) {
 						this->clear_screen();
 						this->board.print_board();
 						std::cout << "Draw (threefold repetition)" << std::endl;
