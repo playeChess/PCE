@@ -10,7 +10,9 @@
 ## To Do
 
 - [x] Pieces (moves)
-  - [x] Pawns
+  - [ ] Pawns
+    - [x] Move
+    - [ ] Takes
   - [x] Rooks
   - [x] Knights
   - [x] Bishops
