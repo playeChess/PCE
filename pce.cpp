@@ -866,19 +866,22 @@ namespace PlayeChessEngine {
 				 * @return If the move was played (bool)
 				 */
 				PlayeChessEngine::Move move(PlayeChessEngine::Move move, bool white) {
-					if (this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr)
+					if (this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr) {
 						move.set_valid(false);
-                    else if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]]->is_white != white) 
+						return move;
+					} if(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]]->is_white != white) {
                         move.set_valid(false);
-					else if (move.am_in(this->get_moves(move.get_start_coords()[0], move.get_start_coords()[1]))) {
+						return move;
+					} if (move.am_in(this->get_moves(move.get_start_coords()[0], move.get_start_coords()[1]))) {
 						if(this->board[move.get_end_coords()[0]][move.get_end_coords()[1]] != nullptr)
 							move.set_capture(true);
 						this->board = this->transfer(this->board, move.get_start_coords()[0], move.get_start_coords()[1], move.get_end_coords()[0], move.get_end_coords()[1]);
 						this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]->update_coords(move.get_end_coords()[0], move.get_end_coords()[1]);
 						delete this->board[move.get_start_coords()[0]][move.get_start_coords()[1]];
 						move.set_valid(true);
-					} else
-						move.set_valid(false);
+						return move;
+					}
+					move.set_valid(false);
 					return move;
 				}
 
@@ -1016,15 +1019,40 @@ namespace PlayeChessEngine {
 					else
 						this->castle_row(7, kingside);
 				}
+
+				std::array<int, 2> get_promotion_row(int row) {
+					for (int i = 0; i < 8; i++) {
+						if (this->board[row][i] != nullptr) {
+							if(this->board[row][i]->get_type() == pieces::piece_type::p && this->board[row][i]->is_white == (row == 7))
+								return {row, i};
+						}
+					}
+					return {-1, -1};
+				}
+
+				std::array<int, 2> get_promotion(bool white) {
+					if (white)
+						return this->get_promotion_row(7);
+					return this->get_promotion_row(0);
+				}
+
+				void promote(bool white, std::array<int, 2> coords, pieces::piece_type type) {
+					if(coords == std::array{-1, -1})
+						return;
+					if(type == pieces::piece_type::r)
+						this->board[coords[0]][coords[1]] = new pieces::Rook(white, coords[0], coords[1]);
+					else if(type == pieces::piece_type::n)
+						this->board[coords[0]][coords[1]] = new pieces::Knight(white, coords[0], coords[1]);
+					else if(type == pieces::piece_type::b)
+						this->board[coords[0]][coords[1]] = new pieces::Bishop(white, coords[0], coords[1]);
+					else if(type == pieces::piece_type::q)
+						this->board[coords[0]][coords[1]] = new pieces::Queen(white, coords[0], coords[1]);
+				}
 		};
 	} // namespace board
 
 	// TODO Draw conditions
 	// check_threefold_repetition()
-
-	// TODO Promotion
-	// check_promotion()
-	// promote()
 
 	// TODO En passant
 	// check_en_passant()
@@ -1045,13 +1073,14 @@ namespace PlayeChessEngine {
 			* @brief The board
 			*
 			*/
-			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("7k/P7/8/8/8/8/8/7K");
 			// Checkmate fen : 7k/Q7/6K1/8/8/8/8/8
 			// Stalemate fen : 7k/8/8/8/8/8/8/R5RK
 			// Castling fen : r3k2r/8/8/8/8/8/8/R3K2R
 			// En passant fen : 7k/7p/6P1/8/8/8/8/7K
 			// King fen : 5k4/8/8/8/8/8/8/5K4
 			// Insufficient material fen : 7k/8/8/8/8/6r/7B/7K
+			// Promotion fen : 7k/P7/8/8/8/8/8/7K
 
 			int move_countdown = 50;
 
@@ -1078,22 +1107,20 @@ namespace PlayeChessEngine {
 			*/
 			bool move(bool white) {
 				this->clear_screen();
+				std::string move;
+				if (white)
+					std::cout << "> White to play <" << std::endl;
+				else
+					std::cout << "> Black to play <" << std::endl;
 				std::vector<Move> moves = this->board.get_all_moves(this->board.get_board(), white);
 				for (auto move : moves) {
 					std::cout << move.show() << std::endl;
 				}
-				std::string move;
-				for(auto i : this->board.get_all_landing_moves(this->board.get_board(), !white)){
-					std::cout << i[0] << " - " << i[1] << std::endl;
-				}
-				if (white)
-					std::cout << "White to play" << std::endl;
-				else
-					std::cout << "Black to play" << std::endl;
 				this->board.print_board(this->board.get_all_landing_moves(this->board.get_board(), white));
 				bool valid = false;
 				while (!valid) {
 					do {
+						std::cout << "> ";
 						std::cin >> move;
 					} while (move.length() != 4 && move != "exit" && move != "O-O" && move != "O-O-O");
 					if (move == "exit")
@@ -1114,11 +1141,34 @@ namespace PlayeChessEngine {
                         std::cout << move.show() << std::endl;
                     }*/
 					Move move_obj = Move(move[1] - '1', move[0] - 'a', move[3] - '1', move[2] - 'a');
+					board::pieces::piece_type type = this->board.get_board()[move_obj.get_start_coords()[0]][move_obj.get_start_coords()[1]]->get_type();
 					move_obj = this->board.move(move_obj, white);
-					if (move_obj.get_valid())
+
+					valid = move_obj.get_valid();
+
+					if (valid)
 						this->moves.push_back(move_obj);
-					if(!move_obj.get_capture())
+					
+					if(!move_obj.get_capture() || type == board::pieces::piece_type::p)
+						this->move_countdown = 50;
+					else
 						this->move_countdown--;
+
+					if(type == board::pieces::piece_type::p) {
+						if(this->board.get_promotion(white) != std::array{-1, -1}) {
+							std::string promotion;
+							std::cout << "Promote to (Q, R, B, N): ";
+							std::cin >> promotion;
+							board::pieces::piece_type promotion_type = board::pieces::piece_type::q;
+							if(promotion == "R")
+								promotion_type = board::pieces::piece_type::r;
+							else if(promotion == "B")
+								promotion_type = board::pieces::piece_type::b;
+							else if(promotion == "N")
+								promotion_type = board::pieces::piece_type::n;
+							this->board.promote(white, this->board.get_promotion(white), promotion_type);
+						}
+					}
 				}
 				return false;
 			}
