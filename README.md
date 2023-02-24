@@ -25,7 +25,7 @@
   - [x] Concept of check
   - [x] Anti autocheck
   - [x] Checkmate
-- [ ] Promotion
+- [x] Promotion
 - [ ] Draws
   - [x] Stalemate
   - [x] Fifty moves
