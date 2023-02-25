@@ -6,11 +6,11 @@
  > Github: https://github.com/PCE-Engine/PCE
 */
 
-#include <array>
-#include <cstdlib>
 #include <iostream>
 #include <string>
+#include <array>
 #include <vector>
+#include <cstdlib>
 
 /**
  * @brief PlayeChessEngine is the namespace for the PCE engine who is made for
@@ -1105,7 +1105,7 @@ namespace PlayeChessEngine {
 				bool get_en_passant_side(Move last_move, bool white, int side, int offset) {
 					if(last_move.get_end_coords()[1] + side < 0 || last_move.get_end_coords()[1] + side > 7)
 						return false;
-					if(this->board[last_move.get_end_coords()[0] + offset][last_move.get_end_coords()[1] + side] != nullptr) {
+					if(this->board[last_move.get_end_coords()[0]][last_move.get_end_coords()[1] + side] != nullptr) {
 						pieces::Piece* ep_piece = this->board[last_move.get_end_coords()[0]][last_move.get_end_coords()[1] + side];
 						if(ep_piece->get_type() == pieces::piece_type::p && ep_piece->is_white == white)
 							return true;
@@ -1115,13 +1115,7 @@ namespace PlayeChessEngine {
 
 				bool get_en_passant_offset(Move last_move, bool white, int offset) {
 					pieces::Piece* moved_piece = this->board[last_move.get_end_coords()[0]][last_move.get_end_coords()[1]];
-					std::cout << last_move.show() << std::endl;
-					std::cout << (moved_piece == nullptr) << std::endl;
-					//std::cout << moved_piece->show() << std::endl;
-					std::cin.get();
 					if(last_move.get_end_coords()[0] == last_move.get_start_coords()[0] + offset && moved_piece->get_type() == pieces::piece_type::p && moved_piece->is_white != white) {
-						std::cout << "UP TO SIDE";
-						std::cin.get();
 						return this->get_en_passant_side(last_move, white, -1, offset) || this->get_en_passant_side(last_move, white, 1, offset);
 					}
 					return false;
@@ -1137,10 +1131,6 @@ namespace PlayeChessEngine {
 				}
 		};
 	} // namespace board
-
-	// TODO En passant
-	// check_en_passant()
-	// en_passant()
 
 	/**
 	* @brief PCE is the actual chess engine
