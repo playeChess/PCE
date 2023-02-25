@@ -591,6 +591,10 @@ namespace PlayeChessEngine {
 					{nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}
 				}};
 
+				std::vector<Move> moves;
+
+				bool white_turn = true;
+
 			public:
 				// TODO Add the funcitonnality for w KQkq - 0 1
 				/**
@@ -600,8 +604,16 @@ namespace PlayeChessEngine {
 				 */
 				Board(std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
 					fen = fen.substr(0, fen.find(" "));
-					load_fen(fen);
+					this->load_fen(fen);
 				};
+				
+				void set_moves(std::vector<Move> moves) {
+					this->moves = moves;
+				}
+
+				void set_white_turn(bool white_turn) {
+					this->white_turn = white_turn;
+				}
 
 				/**
 				 * @brief Checks if the board is equal to another board
@@ -625,8 +637,8 @@ namespace PlayeChessEngine {
 					if(this->can_castle(true, true) != other.can_castle(true, true) || this->can_castle(true, false) != other.can_castle(true, false) || this->can_castle(false, true) != other.can_castle(false, true) || this->can_castle(false, false) != other.can_castle(false, false))
 						return false;
 					// TODO Add `en passant` functionality
-					/*if(this->get_en_passant() != other.get_en_passant())
-						return false;*/
+					if(this->get_en_passant(this->moves, this->white_turn) != other.get_en_passant(other.moves, other.white_turn))
+						return false;
 					return true;
 				}
 				
@@ -1233,6 +1245,8 @@ namespace PlayeChessEngine {
 			*/
 			bool move(bool white) {
 				this->clear_screen();
+				this->board.set_moves(this->moves);
+				this->board.set_white_turn(white);
 				std::string move;
 				if (white)
 					std::cout << "> White to play <" << std::endl;
