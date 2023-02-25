@@ -902,7 +902,7 @@ namespace PlayeChessEngine {
 				 * @param white If the color is white
 				 * @return If the move was played (bool)
 				 */
-				PlayeChessEngine::Move move(PlayeChessEngine::Move move, bool white) {
+				PlayeChessEngine::Move move(std::vector<PlayeChessEngine::Move> moves, PlayeChessEngine::Move move, bool white) {
 					if (this->board[move.get_start_coords()[0]][move.get_start_coords()[1]] == nullptr) {
 						move.set_valid(false);
 						return move;
@@ -917,6 +917,38 @@ namespace PlayeChessEngine {
 						delete this->board[move.get_start_coords()[0]][move.get_start_coords()[1]];
 						move.set_valid(true);
 						return move;
+					} if(this->get_en_passant(moves, white) != std::array<int, 2>{-1, -1}) {
+						if(std::array<int, 2>{move.get_start_coords()[0], move.get_start_coords()[1]} == this->get_en_passant(moves, white)) {
+							if(white) {
+								if(move.get_end_coords()[0] == move.get_start_coords()[0] + 1) {
+									if(move.get_end_coords()[1] == move.get_start_coords()[1] + 1) {
+										std::swap(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]], this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]);
+										this->board[move.get_start_coords()[0]][move.get_start_coords()[1] + 1] = nullptr;
+										move.set_valid(true);
+										return move;
+									} if(move.get_end_coords()[1] == move.get_start_coords()[1] - 1) {
+										std::swap(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]], this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]);
+										this->board[move.get_start_coords()[0]][move.get_start_coords()[1] - 1] = nullptr;
+										move.set_valid(true);
+										return move;
+									}
+								}
+							} else {
+								if(move.get_end_coords()[0] == move.get_start_coords()[0] - 1) {
+									if(move.get_end_coords()[1] == move.get_start_coords()[1] + 1) {
+										std::swap(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]], this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]);
+										this->board[move.get_start_coords()[0]][move.get_start_coords()[1] + 1] = nullptr;
+										move.set_valid(true);
+										return move;
+									} if(move.get_end_coords()[1] == move.get_start_coords()[1] - 1) {
+										std::swap(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]], this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]);
+										this->board[move.get_start_coords()[0]][move.get_start_coords()[1] - 1] = nullptr;
+										move.set_valid(true);
+										return move;
+									}
+								}
+							}
+						}
 					}
 					move.set_valid(false);
 					return move;
@@ -1102,32 +1134,46 @@ namespace PlayeChessEngine {
 					return count >= 3;
 				}
 
-				bool get_en_passant_side(Move last_move, bool white, int side, int offset) {
+				std::array<int, 2> get_en_passant_side(Move last_move, bool white, int side, int offset) {
 					if(last_move.get_end_coords()[1] + side < 0 || last_move.get_end_coords()[1] + side > 7)
-						return false;
+						return std::array<int, 2>{-1, -1};
 					if(this->board[last_move.get_end_coords()[0]][last_move.get_end_coords()[1] + side] != nullptr) {
 						pieces::Piece* ep_piece = this->board[last_move.get_end_coords()[0]][last_move.get_end_coords()[1] + side];
 						if(ep_piece->get_type() == pieces::piece_type::p && ep_piece->is_white == white)
-							return true;
+							return std::array<int, 2>{last_move.get_end_coords()[0], last_move.get_end_coords()[1] + side};
 					}
-					return false;
+					return std::array<int, 2>{-1, -1};
 				}
 
-				bool get_en_passant_offset(Move last_move, bool white, int offset) {
+				std::array<int, 2> get_en_passant_offset(Move last_move, bool white, int offset) {
 					pieces::Piece* moved_piece = this->board[last_move.get_end_coords()[0]][last_move.get_end_coords()[1]];
 					if(last_move.get_end_coords()[0] == last_move.get_start_coords()[0] + offset && moved_piece->get_type() == pieces::piece_type::p && moved_piece->is_white != white) {
-						return this->get_en_passant_side(last_move, white, -1, offset) || this->get_en_passant_side(last_move, white, 1, offset);
+						if(this->get_en_passant_side(last_move, white, -1, offset) != std::array<int, 2>{-1, -1})
+							return this->get_en_passant_side(last_move, white, -1, offset);
+						return this->get_en_passant_side(last_move, white, 1, offset);
 					}
-					return false;
+					return std::array<int, 2>{-1, -1};
 				}
 
-				bool get_en_passant(std::vector<Move> moves, bool white) {
+				std::array<int, 2> get_en_passant(std::vector<Move> moves, bool white) {
 					if(moves.size() == 0)
-						return false;
+						return std::array<int, 2>{-1, -1};
 					Move last_move = moves[moves.size() -1];
 					if(white)
 						return this->get_en_passant_offset(last_move, white, -2);
 					return this->get_en_passant_offset(last_move, white, 2);
+				}
+
+				void en_passant(std::array<int, 2> start_coords, std::array<int, 2> end_coords, bool white) {
+					std::swap(this->board[start_coords[0]][start_coords[1]], this->board[end_coords[0]][end_coords[1]]);
+					if(white) {
+						delete this->board[end_coords[0] - 1][end_coords[1]];
+						this->board[end_coords[0] - 1][end_coords[1]] = nullptr;
+					}
+					else {
+						delete this->board[end_coords[0] + 1][end_coords[1]];
+						this->board[end_coords[0] + 1][end_coords[1]] = nullptr;
+					}
 				}
 		};
 	} // namespace board
@@ -1172,6 +1218,13 @@ namespace PlayeChessEngine {
 				#endif
 			}
 
+			std::array<int, 2> coords_to_array(std::vector<int> coords) {
+				std::array<int, 2> array;
+				array[0] = coords[0];
+				array[1] = coords[1];
+				return array;
+			}
+
 			/**
 			* @brief Plays a move
 			*
@@ -1192,8 +1245,6 @@ namespace PlayeChessEngine {
 				this->board.print_board(this->board.get_all_landing_moves(this->board.get_board(), white));
 				bool valid = false;
 				while (!valid) {
-					std::cout << this->board.get_en_passant(moves, white) << std::endl;
-					std::cin.get();
 					do {
 						std::cout << "> ";
 						std::cin >> move;
@@ -1217,7 +1268,7 @@ namespace PlayeChessEngine {
                     }*/
 					Move move_obj = Move(move[1] - '1', move[0] - 'a', move[3] - '1', move[2] - 'a');
 					board::pieces::piece_type type = this->board.get_board()[move_obj.get_start_coords()[0]][move_obj.get_start_coords()[1]]->get_type();
-					move_obj = this->board.move(move_obj, white);
+					move_obj = this->board.move(this->moves, move_obj, white);
 
 					valid = move_obj.get_valid();
 
