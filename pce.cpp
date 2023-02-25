@@ -1085,11 +1085,58 @@ namespace PlayeChessEngine {
 					else if(type == pieces::piece_type::q)
 						this->board[coords[0]][coords[1]] = new pieces::Queen(white, coords[0], coords[1]);
 				}
+
+				/**
+				 * @brief Checks if there is a threefold repetition
+				 * 
+				 * @param boards The vector of boards (after each move)
+				 * @param white If the player is white
+				 * @return Weither there is a threefold repetition (bool)
+				 */
+				bool check_threefold_repetition(std::vector<Board> boards, bool white) {
+					int count = 0;
+					for (int i = 0; i < boards.size(); i++) {
+						if ((boards[i] == *this) && ((i % 2 == 0) != white))
+							count++;
+					}
+					return count >= 3;
+				}
+
+				bool get_en_passant_side(Move last_move, bool white, int side, int offset) {
+					if(last_move.get_end_coords()[1] + side < 0 || last_move.get_end_coords()[1] + side > 7)
+						return false;
+					if(this->board[last_move.get_end_coords()[0] + offset][last_move.get_end_coords()[1] + side] != nullptr) {
+						pieces::Piece* ep_piece = this->board[last_move.get_end_coords()[0]][last_move.get_end_coords()[1] + side];
+						if(ep_piece->get_type() == pieces::piece_type::p && ep_piece->is_white == white)
+							return true;
+					}
+					return false;
+				}
+
+				bool get_en_passant_offset(Move last_move, bool white, int offset) {
+					pieces::Piece* moved_piece = this->board[last_move.get_end_coords()[0]][last_move.get_end_coords()[1]];
+					std::cout << last_move.show() << std::endl;
+					std::cout << (moved_piece == nullptr) << std::endl;
+					//std::cout << moved_piece->show() << std::endl;
+					std::cin.get();
+					if(last_move.get_end_coords()[0] == last_move.get_start_coords()[0] + offset && moved_piece->get_type() == pieces::piece_type::p && moved_piece->is_white != white) {
+						std::cout << "UP TO SIDE";
+						std::cin.get();
+						return this->get_en_passant_side(last_move, white, -1, offset) || this->get_en_passant_side(last_move, white, 1, offset);
+					}
+					return false;
+				}
+
+				bool get_en_passant(std::vector<Move> moves, bool white) {
+					if(moves.size() == 0)
+						return false;
+					Move last_move = moves[moves.size() -1];
+					if(white)
+						return this->get_en_passant_offset(last_move, white, -2);
+					return this->get_en_passant_offset(last_move, white, 2);
+				}
 		};
 	} // namespace board
-
-	// TODO Draw conditions
-	// check_threefold_repetition()
 
 	// TODO En passant
 	// check_en_passant()
@@ -1110,17 +1157,17 @@ namespace PlayeChessEngine {
 			 * @brief The boards played (by each move)
 			 * 
 			 */
-			std::vector<std::pair<board::Board, bool>> boards;
+			std::vector<board::Board> boards;
 			/**
 			* @brief The board
 			*
 			*/
-			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("r6k/8/8/8/8/8/8/R6K");
+			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("7k/7p/8/6P1/8/8/8/7K");
 			// Base fen 					: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
 			// Checkmate fen 				: 7k/Q7/6K1/8/8/8/8/8
 			// Stalemate fen 				: 7k/8/8/8/8/8/8/R5RK
 			// Castling fen 				: r3k2r/8/8/8/8/8/8/R3K2R
-			// En passant fen 				: 7k/7p/6P1/8/8/8/8/7K
+			// En passant fen 				: 7k/7p/8/6P1/8/8/8/7K
 			// Insufficient material fen 	: 7k/8/8/8/8/6r/7B/7K
 			// Promotion fen 				: 7k/P7/8/8/8/8/8/7K
 			// Repetition fen 				: r6k/8/8/8/8/8/8/R6K
@@ -1133,17 +1180,6 @@ namespace PlayeChessEngine {
 				#else
 					std::system("clear");
 				#endif
-			}
-
-			bool check_threefold_repetition(bool white) {
-				int count = 0;
-				for (int i = 0; i < this->boards.size(); i++) {
-					//std::cout << "Move " << i << std::endl;
-					if ((this->boards[i].first == this->board) && (this->boards[i].second == white))
-						count++;
-					//std::cin.get();
-				}
-				return count >= 3;
 			}
 
 			/**
@@ -1159,13 +1195,15 @@ namespace PlayeChessEngine {
 					std::cout << "> White to play <" << std::endl;
 				else
 					std::cout << "> Black to play <" << std::endl;
-				std::vector<Move> moves = this->board.get_all_moves(this->board.get_board(), white);
-				for (auto move : moves) {
+				std::vector<Move> color_moves = this->board.get_all_moves(this->board.get_board(), white);
+				for (auto move : color_moves) {
 					std::cout << move.show() << std::endl;
 				}
 				this->board.print_board(this->board.get_all_landing_moves(this->board.get_board(), white));
 				bool valid = false;
 				while (!valid) {
+					std::cout << this->board.get_en_passant(moves, white) << std::endl;
+					std::cin.get();
 					do {
 						std::cout << "> ";
 						std::cin >> move;
@@ -1195,7 +1233,7 @@ namespace PlayeChessEngine {
 
 					if (valid) {
 						this->moves.push_back(move_obj);
-						this->boards.push_back(std::make_pair(this->board, white));
+						this->boards.push_back(this->board);
 					}
 					
 					if(!move_obj.get_capture() || type == board::pieces::piece_type::p)
@@ -1236,7 +1274,7 @@ namespace PlayeChessEngine {
 			void main() {
 				int move_count = 0;
 				bool break_loop = false;
-				this->boards.push_back(std::make_pair(this->board, move_count % 2 != 0));
+				this->boards.push_back(this->board);
 				while (true) {
 					bool white = move_count % 2 == 0;
 					break_loop = this->move(white);
@@ -1265,7 +1303,7 @@ namespace PlayeChessEngine {
 						this->board.print_board();
 						std::cout << "Draw (50 move rule)" << std::endl;
 						break;
-					} else if(this->check_threefold_repetition(white)) {
+					} else if(this->board.check_threefold_repetition(this->boards, white)) {
 						this->clear_screen();
 						this->board.print_board();
 						std::cout << "Draw (threefold repetition)" << std::endl;
