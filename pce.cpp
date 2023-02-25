@@ -929,37 +929,18 @@ namespace PlayeChessEngine {
 						delete this->board[move.get_start_coords()[0]][move.get_start_coords()[1]];
 						move.set_valid(true);
 						return move;
-					} if(this->get_en_passant(moves, white) != std::array<int, 2>{-1, -1}) {
-						if(std::array<int, 2>{move.get_start_coords()[0], move.get_start_coords()[1]} == this->get_en_passant(moves, white)) {
-							if(white) {
-								if(move.get_end_coords()[0] == move.get_start_coords()[0] + 1) {
-									if(move.get_end_coords()[1] == move.get_start_coords()[1] + 1) {
-										std::swap(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]], this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]);
-										this->board[move.get_start_coords()[0]][move.get_start_coords()[1] + 1] = nullptr;
-										move.set_valid(true);
-										return move;
-									} if(move.get_end_coords()[1] == move.get_start_coords()[1] - 1) {
-										std::swap(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]], this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]);
-										this->board[move.get_start_coords()[0]][move.get_start_coords()[1] - 1] = nullptr;
-										move.set_valid(true);
-										return move;
-									}
-								}
-							} else {
-								if(move.get_end_coords()[0] == move.get_start_coords()[0] - 1) {
-									if(move.get_end_coords()[1] == move.get_start_coords()[1] + 1) {
-										std::swap(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]], this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]);
-										this->board[move.get_start_coords()[0]][move.get_start_coords()[1] + 1] = nullptr;
-										move.set_valid(true);
-										return move;
-									} if(move.get_end_coords()[1] == move.get_start_coords()[1] - 1) {
-										std::swap(this->board[move.get_start_coords()[0]][move.get_start_coords()[1]], this->board[move.get_end_coords()[0]][move.get_end_coords()[1]]);
-										this->board[move.get_start_coords()[0]][move.get_start_coords()[1] - 1] = nullptr;
-										move.set_valid(true);
-										return move;
-									}
-								}
-							}
+					}
+					std::array<int, 2> start_coords = this->get_en_passant(moves, white);
+					if(start_coords == std::array<int, 2>{move.get_start_coords()[0], move.get_start_coords()[1]}) {
+						int side = moves.back().get_end_coords()[1] - start_coords[1];
+						int offset = (white ? 1 : -1);
+						std::cout << start_coords[0] + offset << " " << start_coords[1] + side << std::endl;
+						std::cin.get();
+						if(move.get_end_coords()[0] == start_coords[0] + offset && move.get_end_coords()[1] == start_coords[1] + side) {
+							this->en_passant(start_coords, std::array<int, 2>{start_coords[0] + offset, start_coords[1] + side}, white);
+							move.set_valid(true);
+							move.set_capture(true);
+							return move;
 						}
 					}
 					move.set_valid(false);
@@ -1178,14 +1159,10 @@ namespace PlayeChessEngine {
 
 				void en_passant(std::array<int, 2> start_coords, std::array<int, 2> end_coords, bool white) {
 					std::swap(this->board[start_coords[0]][start_coords[1]], this->board[end_coords[0]][end_coords[1]]);
-					if(white) {
-						delete this->board[end_coords[0] - 1][end_coords[1]];
-						this->board[end_coords[0] - 1][end_coords[1]] = nullptr;
-					}
-					else {
-						delete this->board[end_coords[0] + 1][end_coords[1]];
-						this->board[end_coords[0] + 1][end_coords[1]] = nullptr;
-					}
+					delete this->board[start_coords[0]][end_coords[1]];
+					this->board[start_coords[0]][end_coords[1]] = nullptr;
+					std::cout << start_coords[0] << " " << end_coords[1] << std::endl;
+					std::cin.get();
 				}
 		};
 	} // namespace board
@@ -1311,6 +1288,8 @@ namespace PlayeChessEngine {
 							this->board.promote(white, this->board.get_promotion(white), promotion_type);
 						}
 					}
+					std::cout << move_obj.show() << std::endl;
+					std::cin.get();
 				}
 				return false;
 			}
