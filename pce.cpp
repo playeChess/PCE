@@ -629,8 +629,6 @@ namespace PlayeChessEngine {
 							} if (this->board[i][j] == nullptr || other.board[i][j] == nullptr) {
 								return false;
 							}
-							std::cout << this->board[i][j]->get_type() << std::endl;
-							std::cin.get();
 							if(this->board[i][j]->get_type() == other.board[i][j]->get_type() && this->board[i][j]->is_white == other.board[i][j]->is_white)
 								continue;
 							return false;
@@ -638,8 +636,6 @@ namespace PlayeChessEngine {
 					}
 					if(this->can_castle(true, true) != other.can_castle(true, true) || this->can_castle(true, false) != other.can_castle(true, false) || this->can_castle(false, true) != other.can_castle(false, true) || this->can_castle(false, false) != other.can_castle(false, false))
 						return false;
-					std::cout << this->get_en_passant(this->moves, this->white_turn)[0] << " " << this->get_en_passant(this->moves, this->white_turn)[1] << " - " << other.get_en_passant(other.moves, other.white_turn)[0] << " " << other.get_en_passant(other.moves, other.white_turn)[1] << std::endl;
-					std::cin.get();
 					if(this->get_en_passant(this->moves, this->white_turn) != other.get_en_passant(other.moves, other.white_turn))
 						return false;
 					return true;
@@ -937,8 +933,6 @@ namespace PlayeChessEngine {
 					if(start_coords == std::array<int, 2>{move.get_start_coords()[0], move.get_start_coords()[1]}) {
 						int side = moves.back().get_end_coords()[1] - start_coords[1];
 						int offset = (white ? 1 : -1);
-						std::cout << start_coords[0] + offset << " " << start_coords[1] + side << std::endl;
-						std::cin.get();
 						if(move.get_end_coords()[0] == start_coords[0] + offset && move.get_end_coords()[1] == start_coords[1] + side) {
 							this->en_passant(start_coords, std::array<int, 2>{start_coords[0] + offset, start_coords[1] + side}, white);
 							move.set_valid(true);
@@ -1122,7 +1116,7 @@ namespace PlayeChessEngine {
 				 * @return Weither there is a threefold repetition (bool)
 				 */
 				bool check_threefold_repetition(std::vector<Board> boards, bool white) {
-					int count = 0;
+					int count = 1;
 					for (int i = 0; i < boards.size() - 1; i++) {
 						if ((boards[i] == *this) && ((i % 2 == 0) != white))
 							count++;
@@ -1165,8 +1159,6 @@ namespace PlayeChessEngine {
 					delete this->board[start_coords[0]][end_coords[1]];
 					this->board[end_coords[0]][end_coords[1]]->update_coords(end_coords[0], end_coords[1]);
 					this->board[start_coords[0]][end_coords[1]] = nullptr;
-					std::cout << start_coords[0] << " " << end_coords[1] << std::endl;
-					std::cin.get();
 				}
 		};
 	} // namespace board
@@ -1191,7 +1183,7 @@ namespace PlayeChessEngine {
 			* @brief The board
 			*
 			*/
-			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("7k/7p/8/6P1/8/8/8/7K");
+			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("r6k/8/8/8/8/8/8/R6K");
 			// Base fen 					: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
 			// Checkmate fen 				: 7k/Q7/6K1/8/8/8/8/8
 			// Stalemate fen 				: 7k/8/8/8/8/8/8/R5RK
@@ -1292,8 +1284,6 @@ namespace PlayeChessEngine {
 							this->board.promote(white, this->board.get_promotion(white), promotion_type);
 						}
 					}
-					std::cout << move_obj.show() << std::endl;
-					std::cin.get();
 				}
 				return false;
 			}
