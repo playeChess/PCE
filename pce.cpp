@@ -359,7 +359,7 @@ namespace PlayeChessEngine {
 								if (x_diff == 1) {
 									if (board[x_final][y_final] == nullptr)
 										return true;
-								} else if (x_diff == 2 && !this->has_moved) {
+								} else if (x_diff == 2 && !this->has_moved && this->coords[0] == 1) {
 									if (board[x_final][y_final] == nullptr && board[x_final][y_final - 1] == nullptr)
 										return true;
 								}
@@ -367,8 +367,20 @@ namespace PlayeChessEngine {
 								if (x_diff == -1) {
 									if (board[x_final][y_final] == nullptr)
 										return true;
-								} else if (x_diff == -2 && !has_moved) {
+								} else if (x_diff == -2 && !has_moved && this->coords[0] == 6) {
 									if (board[x_final][y_final] == nullptr && board[x_final][y_final + 1] == nullptr)
+										return true;
+								}
+							}
+						} else if (abs(y_diff) == 1 && abs(x_diff) == 1) {
+							if (this->is_white) {
+								if (x_diff == 1) {
+									if (board[x_final][y_final] != nullptr && !board[x_final][y_final]->is_white)
+										return true;
+								}
+							} else {
+								if (x_diff == -1) {
+									if (board[x_final][y_final] != nullptr && board[x_final][y_final]->is_white)
 										return true;
 								}
 							}
@@ -1183,7 +1195,7 @@ namespace PlayeChessEngine {
 			* @brief The board
 			*
 			*/
-			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("r6k/8/8/8/8/8/8/R6K");
+			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("7k/8/8/7p/6P1/8/8/7K");
 			// Base fen 					: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
 			// Checkmate fen 				: 7k/Q7/6K1/8/8/8/8/8
 			// Stalemate fen 				: 7k/8/8/8/8/8/8/R5RK
