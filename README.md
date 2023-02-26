@@ -26,9 +26,9 @@
   - [x] Anti autocheck
   - [x] Checkmate
 - [x] Promotion
-- [ ] Draws
+- [x] Draws
   - [x] Stalemate
   - [x] Fifty moves
-  - [ ] Threefold repetition
+  - [x] Threefold repetition
   - [x] Insufficient material
 - [x] No bugs found

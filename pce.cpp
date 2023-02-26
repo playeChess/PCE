@@ -629,6 +629,8 @@ namespace PlayeChessEngine {
 							} if (this->board[i][j] == nullptr || other.board[i][j] == nullptr) {
 								return false;
 							}
+							std::cout << this->board[i][j]->get_type() << std::endl;
+							std::cin.get();
 							if(this->board[i][j]->get_type() == other.board[i][j]->get_type() && this->board[i][j]->is_white == other.board[i][j]->is_white)
 								continue;
 							return false;
@@ -636,7 +638,8 @@ namespace PlayeChessEngine {
 					}
 					if(this->can_castle(true, true) != other.can_castle(true, true) || this->can_castle(true, false) != other.can_castle(true, false) || this->can_castle(false, true) != other.can_castle(false, true) || this->can_castle(false, false) != other.can_castle(false, false))
 						return false;
-					// TODO Add `en passant` functionality
+					std::cout << this->get_en_passant(this->moves, this->white_turn)[0] << " " << this->get_en_passant(this->moves, this->white_turn)[1] << " - " << other.get_en_passant(other.moves, other.white_turn)[0] << " " << other.get_en_passant(other.moves, other.white_turn)[1] << std::endl;
+					std::cin.get();
 					if(this->get_en_passant(this->moves, this->white_turn) != other.get_en_passant(other.moves, other.white_turn))
 						return false;
 					return true;
@@ -965,7 +968,7 @@ namespace PlayeChessEngine {
 				}
 
 				/**
-				 * @brief CHecks if there is insufficient material to checkmate
+				 * @brief Checks if there is insufficient material to checkmate
 				 * 
 				 * @return If there is insufficient material (bool)
 				 */
@@ -1120,7 +1123,7 @@ namespace PlayeChessEngine {
 				 */
 				bool check_threefold_repetition(std::vector<Board> boards, bool white) {
 					int count = 0;
-					for (int i = 0; i < boards.size(); i++) {
+					for (int i = 0; i < boards.size() - 1; i++) {
 						if ((boards[i] == *this) && ((i % 2 == 0) != white))
 							count++;
 					}
@@ -1160,6 +1163,7 @@ namespace PlayeChessEngine {
 				void en_passant(std::array<int, 2> start_coords, std::array<int, 2> end_coords, bool white) {
 					std::swap(this->board[start_coords[0]][start_coords[1]], this->board[end_coords[0]][end_coords[1]]);
 					delete this->board[start_coords[0]][end_coords[1]];
+					this->board[end_coords[0]][end_coords[1]]->update_coords(end_coords[0], end_coords[1]);
 					this->board[start_coords[0]][end_coords[1]] = nullptr;
 					std::cout << start_coords[0] << " " << end_coords[1] << std::endl;
 					std::cin.get();
