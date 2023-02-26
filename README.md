@@ -1,5 +1,5 @@
 # PCE
-![](https://img.shields.io/badge/version-DEV-524fff?style=for-the-badge)
+![](https://img.shields.io/badge/version-ALPHA-ff264a?style=for-the-badge)
 ![](https://img.shields.io/badge/Status-In%20Progress-b8b100?style=for-the-badge)
 ![](https://img.shields.io/badge/Made%20for-eChess-11482f?style=for-the-badge)
 ![](https://img.shields.io/github/languages/code-size/the-ylang/y?label=size&style=for-the-badge)
