@@ -10,18 +10,18 @@
 ## To Do
 
 - [x] Pieces (moves)
-  - [ ] Pawns
+  - [x] Pawns
     - [x] Move
-    - [ ] Takes
+    - [x] Takes
   - [x] Rooks
   - [x] Knights
   - [x] Bishops
   - [x] Queen
   - [x] King
-- [ ] Special moves
+- [x] Special moves
   - [x] Pawn double move
   - [x] Castling
-  - [ ] En passant
+  - [x] En passant
 - [x] Moves
 - [x] Checks
   - [x] Concept of check
@@ -33,4 +33,8 @@
   - [x] Fifty moves
   - [x] Threefold repetition
   - [x] Insufficient material
+- [ ] Advanced FEN functionnalities
+- [ ] PGN functionnalitites
+- [ ] Additionnal gamemodes
+  - [ ] ...
 - [x] No bugs found
