@@ -200,6 +200,9 @@ namespace PlayeChessEngine {
 						this->coords[1] = y;
 					}
 
+					/**
+					 * @brief Destroy the Piece object
+					 */
 					virtual ~Piece() {}
 
 					/**
@@ -222,6 +225,11 @@ namespace PlayeChessEngine {
 						this->coords[1] = y;
 					}
 
+					/**
+					 * @brief Get the type object
+					 * 
+					 * @return piece_type 
+					 */
 					piece_type get_type() { return this->type; }
 
 					/**
@@ -603,26 +611,46 @@ namespace PlayeChessEngine {
 					{nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}
 				}};
 
+				/**
+				 * @brief The moves played to get to this position
+				 *
+				 */
 				std::vector<Move> moves;
 
+				/**
+				 * @brief Whether it is white's turn or not
+				 *
+				 */
 				bool white_turn = true;
 
 			public:
-				// TODO Add the funcitonnality for w KQkq - 0 1
+				// TODO Add the funcitonnality for "KQkq - 0 1"
 				/**
 				 * @brief Construct a new Board object
 				 *
 				 * @param fen The fen string
 				 */
 				Board(std::string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
-					fen = fen.substr(0, fen.find(" "));
+					size_t fen_end = fen.find(" ");
+					fen = fen.substr(0, fen_end);
+					this->white_turn = fen[fen_end + 1] == 'w';
 					this->load_fen(fen);
 				};
 				
+				/**
+				 * @brief Set the moves vector
+				 * 
+				 * @param moves The new value of the moves vector
+				 */
 				void set_moves(std::vector<Move> moves) {
 					this->moves = moves;
 				}
 
+				/**
+				 * @brief Set the white_turn value
+				 * 
+				 * @param white_turn The new value of white_turn
+				 */
 				void set_white_turn(bool white_turn) {
 					this->white_turn = white_turn;
 				}
@@ -860,6 +888,14 @@ namespace PlayeChessEngine {
 					return false;
 				}
 
+				/**
+				 * @brief Get the all landing moves of a color
+				 * 
+				 * @param brd The board
+				 * @param white Wether the color is white
+				 * @param from_premove If the function call is from premove_check (to prevent infinite recursion)
+				 * @return All landing moves (std::vector<std::vector<int>>) 
+				 */
 				std::vector<std::vector<int>> get_all_landing_moves(std::array<std::array<pieces::Piece *, 8>, 8> brd, bool white, bool from_premove = false) {
 					std::vector<std::vector<int>> moves;
 					for(auto move : this->get_all_moves(brd, white, from_premove)) {
@@ -1091,6 +1127,12 @@ namespace PlayeChessEngine {
 						this->castle_row(7, kingside);
 				}
 
+				/**
+				 * @brief Checks there is a promotion on a given row
+				 * 
+				 * @param row The row to check
+				 * @return The coordinates of promotion (or {-1, -1} if there is no promotion) (std::array<int, 2>)
+				 */
 				std::array<int, 2> get_promotion_row(int row) {
 					for (int i = 0; i < 8; i++) {
 						if (this->board[row][i] != nullptr) {
@@ -1101,12 +1143,25 @@ namespace PlayeChessEngine {
 					return {-1, -1};
 				}
 
+				/**
+				 * @brief Checks if a given color can castle
+				 * 
+				 * @param white If the player is white
+				 * @return The coordinates of promotion (or {-1, -1} if there is no promotion) (std::array<int, 2>)
+				 */
 				std::array<int, 2> get_promotion(bool white) {
 					if (white)
 						return this->get_promotion_row(7);
 					return this->get_promotion_row(0);
 				}
 
+				/**
+				 * @brief Promotes a pawn
+				 * 
+				 * @param white If the player is white
+				 * @param coords The coordinates of the pawn
+				 * @param type The type of the piece to promote to
+				 */
 				void promote(bool white, std::array<int, 2> coords, pieces::piece_type type) {
 					if(coords == std::array{-1, -1})
 						return;
@@ -1136,6 +1191,15 @@ namespace PlayeChessEngine {
 					return count >= 3;
 				}
 
+				/**
+				 * @brief Checks if a player can en passant on a given side
+				 * 
+				 * @param last_move The last move
+				 * @param white If the player is white
+				 * @param side The side to check (horizontal)
+				 * @param offset The offset to check (vertical)
+				 * @return The coordinates where the player can en passant (or {-1, -1} if there is no en passant) (std::array<int, 2>) 
+				 */
 				std::array<int, 2> get_en_passant_side(Move last_move, bool white, int side, int offset) {
 					if(last_move.get_end_coords()[1] + side < 0 || last_move.get_end_coords()[1] + side > 7)
 						return std::array<int, 2>{-1, -1};
@@ -1147,6 +1211,14 @@ namespace PlayeChessEngine {
 					return std::array<int, 2>{-1, -1};
 				}
 
+				/**
+				 * @brief Checks if a player can en passant
+				 * 
+				 * @param last_move The last move
+				 * @param white If the player is white
+				 * @param offset The offset to check (vertical)
+				 * @return The coordinates where the player can en passant (or {-1, -1} if there is no en passant) (std::array<int, 2>) 
+				 */
 				std::array<int, 2> get_en_passant_offset(Move last_move, bool white, int offset) {
 					pieces::Piece* moved_piece = this->board[last_move.get_end_coords()[0]][last_move.get_end_coords()[1]];
 					if(last_move.get_end_coords()[0] == last_move.get_start_coords()[0] + offset && moved_piece->get_type() == pieces::piece_type::p && moved_piece->is_white != white) {
@@ -1157,6 +1229,13 @@ namespace PlayeChessEngine {
 					return std::array<int, 2>{-1, -1};
 				}
 
+				/**
+				 * @brief Checks if a player can en passant
+				 * 
+				 * @param moves The vector of moves
+				 * @param white If the player is white
+				 * @return The coordinates where the player can en passant (or {-1, -1} if there is no en passant) (std::array<int, 2>) 
+				 */
 				std::array<int, 2> get_en_passant(std::vector<Move> moves, bool white) {
 					if(moves.size() == 0)
 						return std::array<int, 2>{-1, -1};
@@ -1166,6 +1245,13 @@ namespace PlayeChessEngine {
 					return this->get_en_passant_offset(last_move, white, 2);
 				}
 
+				/**
+				 * @brief En passant a pawn of given color from start_coords to end_coords
+				 * 
+				 * @param start_coords The start coordinates
+				 * @param end_coords The end coordinates
+				 * @param white If the player is white
+				 */
 				void en_passant(std::array<int, 2> start_coords, std::array<int, 2> end_coords, bool white) {
 					std::swap(this->board[start_coords[0]][start_coords[1]], this->board[end_coords[0]][end_coords[1]]);
 					delete this->board[start_coords[0]][end_coords[1]];
@@ -1195,7 +1281,7 @@ namespace PlayeChessEngine {
 			* @brief The board
 			*
 			*/
-			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("7k/8/8/7p/6P1/8/8/7K");
+			PlayeChessEngine::board::Board board = PlayeChessEngine::board::Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 			// Base fen 					: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
 			// Checkmate fen 				: 7k/Q7/6K1/8/8/8/8/8
 			// Stalemate fen 				: 7k/8/8/8/8/8/8/R5RK
@@ -1205,8 +1291,16 @@ namespace PlayeChessEngine {
 			// Promotion fen 				: 7k/P7/8/8/8/8/8/7K
 			// Repetition fen 				: r6k/8/8/8/8/8/8/R6K
 
+			/**
+			 * @brief The move countdown
+			 * 
+			 */
 			int move_countdown = 50;
 
+			/**
+			 * @brief Clears the screen
+			 * 
+			 */
 			void clear_screen() {
 				#ifdef _WIN32
 					std::system("cls");
@@ -1215,6 +1309,12 @@ namespace PlayeChessEngine {
 				#endif
 			}
 
+			/**
+			 * @brief Converts a vector of coordinates to an array of coordinates
+			 * 
+			 * @param coords The vector of coordinates
+			 * @return The array of coordinates (std::array<int, 2>)
+			 */
 			std::array<int, 2> coords_to_array(std::vector<int> coords) {
 				std::array<int, 2> array;
 				array[0] = coords[0];
