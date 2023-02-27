@@ -1,9 +1,9 @@
 /*
  > PCE - Play eChess Engine
  > Code by SinisterIcy
- > Version INFDEV
+ > Version ALPHA
  > Licensed under the GNU General Public License v3.0
- > Github: https://github.com/PCE-Engine/PCE
+ > Github: https://github.com/playeChess/PCE
 */
 
 #include <iostream>
