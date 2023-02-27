@@ -358,7 +358,6 @@ namespace PlayeChessEngine {
 					 * @return If the move is valid (bool)
 					 */
 					bool validation_function(std::array<std::array<Piece *, 8>, 8> board, int x_final, int y_final) {
-						// TODO Add pawn takes
 						int x_diff = x_final - this->coords[0];
 						int y_diff = y_final - this->coords[1];
 
