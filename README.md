@@ -1,11 +1,17 @@
 # PCE
 ![](https://img.shields.io/badge/version-ALPHA-ff264a?style=for-the-badge)
-![](https://img.shields.io/badge/Status-In%20Progress-b8b100?style=for-the-badge)
+![](https://img.shields.io/badge/Status-Ready-09b500?style=for-the-badge)
 ![](https://img.shields.io/badge/Made%20for-eChess-11482f?style=for-the-badge)
 ![](https://img.shields.io/github/languages/code-size/the-ylang/y?label=size&style=for-the-badge)
 ![](https://img.shields.io/badge/Made%20in-C++-00599C?logo=cplusplus&style=for-the-badge)
 
 **PCE** (Play eChess Engine) is an online chess engine designed for [playechess.com](http://playechess.com)
+
+## Warning
+
+This repository is not updated.
+
+Visit [PCE-TS](https://github.com/playeChess/PCE-JS)
 
 ## To Do
 
